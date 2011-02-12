@@ -1,0 +1,1716 @@
+#LyX 1.6.8 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\language english
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Ruby Gaming with Rubygame
+\end_layout
+
+\begin_layout Author
+by Roger Ostrander
+\end_layout
+
+\begin_layout Part
+Basics
+\end_layout
+
+\begin_layout Section
+A Very Simple Rubygame Program
+\end_layout
+
+\begin_layout Subsection
+Bare Bones
+\end_layout
+
+\begin_layout Standard
+I use the word 'program' up there because this isn't really a game.
+ For our first foray into Rubygame, we're just going to write something
+ that displays an image on the screen.
+\end_layout
+
+\begin_layout Standard
+very_first.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+# Every rubygame program you run is going to require this
+\end_layout
+
+\begin_layout Plain Layout
+
+require 'rubygame'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# This is for convenience, so we don't have to go around typing
+\end_layout
+
+\begin_layout Plain Layout
+
+# Rubygame:: all the time
+\end_layout
+
+\begin_layout Plain Layout
+
+include Rubygame
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# This sets up everything behind the scenes.
+  You only have to call it
+\end_layout
+
+\begin_layout Plain Layout
+
+# once, at the beginning.
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.init()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Now the fun part - creating our game window!
+\end_layout
+
+\begin_layout Plain Layout
+
+screen = Screen.new( [640,480] ) # The size of the window we want
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Load a picture
+\end_layout
+
+\begin_layout Plain Layout
+
+pic = Surface.load("rubygame.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Draw it to the screen
+\end_layout
+
+\begin_layout Plain Layout
+
+pic.blit(screen, # Surface to draw on,
+\end_layout
+
+\begin_layout Plain Layout
+
+  [0,0])         # and where to draw it
+\end_layout
+
+\begin_layout Plain Layout
+
+  
+\end_layout
+
+\begin_layout Plain Layout
+
+# Rubygame needs to know what part of the screen changed in order to re-
+\end_layout
+
+\begin_layout Plain Layout
+
+# draw it correctly.
+\end_layout
+
+\begin_layout Plain Layout
+
+screen.update(0,0,pic.w, pic.h)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Wait for a bit before exiting
+\end_layout
+
+\begin_layout Plain Layout
+
+sleep(5)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Before we exit out altogether, we need to tell Rubygame we're done.
+\end_layout
+
+\begin_layout Plain Layout
+
+# This is especially important in fullscreen applications!
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.quit()
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Running that will display the Rubygame logo in the upper-left corner of
+ the window for 5 seconds, and then quit.
+\end_layout
+
+\begin_layout Standard
+This is pretty much the most bare-bones Rubygame program possible, but every
+ Rubygame program operates on the same basic steps:
+\end_layout
+
+\begin_layout Enumerate
+Require files and initialize Rubygame.
+\end_layout
+
+\begin_layout Enumerate
+Open a game window
+\end_layout
+
+\begin_layout Enumerate
+Draw to that window
+\end_layout
+
+\begin_layout Enumerate
+Process user input
+\end_layout
+
+\begin_layout Enumerate
+If the game isn't over, go back to step 3.
+ Otherwise, shut Rubygame down.
+\end_layout
+
+\begin_layout Standard
+This bare-bones program demonstrated the first three steps.
+ How about the rest?
+\end_layout
+
+\begin_layout Subsection
+The Game Loop
+\end_layout
+
+\begin_layout Standard
+A very simple form of processing user input would be to make it so the screen
+ sticks around until the user hits a key.
+ That turns out to be pretty easy:
+\end_layout
+
+\begin_layout Standard
+very_first_2.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'rubygame'
+\end_layout
+
+\begin_layout Plain Layout
+
+include Rubygame
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.init()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Before we create the screen, we're going to make a list of options
+\end_layout
+
+\begin_layout Plain Layout
+
+# we'd like it to have:
+\end_layout
+
+\begin_layout Plain Layout
+
+flags = [ HWSURFACE,  # If at all possible, set it up on the video card.
+\end_layout
+
+\begin_layout Plain Layout
+
+                      # This is a lot faster than doing it in software.
+\end_layout
+
+\begin_layout Plain Layout
+
+	DOUBLEBUF, # If the hardware supports it, enable double buffering
+\end_layout
+
+\begin_layout Plain Layout
+
+	FULLSCREEN ] # Use the whole screen!
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+screen = Screen.new( [640,480], # The size of the window we want
+\end_layout
+
+\begin_layout Plain Layout
+
+  0, # This is the color depth of the screen.
+  '0' uses whatever the
+\end_layout
+
+\begin_layout Plain Layout
+
+     # default is for the user's screen.
+\end_layout
+
+\begin_layout Plain Layout
+
+  flags) # These are the flags we were talking about earlier.
+\end_layout
+
+\begin_layout Plain Layout
+
+  
+\end_layout
+
+\begin_layout Plain Layout
+
+pic = Surface.load("rubygame.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+# Convert the picture to the default color depth.
+  If we don't do this
+\end_layout
+
+\begin_layout Plain Layout
+
+# beforehand, it's going to do it anyway right before it draws the
+\end_layout
+
+\begin_layout Plain Layout
+
+# image.
+  Constant converting like that would slow things down hugely.
+\end_layout
+
+\begin_layout Plain Layout
+
+pic = pic.convert()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# Everything that happens while the game is running - keys pressed,
+\end_layout
+
+\begin_layout Plain Layout
+
+# joysticks moved, mice clicked, etc - comes to us in the form
+\end_layout
+
+\begin_layout Plain Layout
+
+# of events.
+  We go through them one by one using this queue:
+\end_layout
+
+\begin_layout Plain Layout
+
+queue = EventQueue.new()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# A simple flag to indicate we're done.
+\end_layout
+
+\begin_layout Plain Layout
+
+finished = false
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# The game loop!
+\end_layout
+
+\begin_layout Plain Layout
+
+while not finished
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	# Draw on the screen
+\end_layout
+
+\begin_layout Plain Layout
+
+	pic.blit(screen, [0,0])
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	# If the hardware gods were kind to us and we got a hardware surface
+\end_layout
+
+\begin_layout Plain Layout
+
+	# with double-buffer support, we can take a shortcut.
+  Rather than
+\end_layout
+
+\begin_layout Plain Layout
+
+	# tell Rubygame what part of the screen was updated, we can tell it
+\end_layout
+
+\begin_layout Plain Layout
+
+	# that the whole screen changed, and to update everything at once:
+\end_layout
+
+\begin_layout Plain Layout
+
+	screen.flip()
+\end_layout
+
+\begin_layout Plain Layout
+
+	# If we didn't get a hardware surface, this just updates the whole
+\end_layout
+
+\begin_layout Plain Layout
+
+	# screen without being fast about it.
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	# Process all events that came up this time around.
+\end_layout
+
+\begin_layout Plain Layout
+
+	queue.each do | event |
+\end_layout
+
+\begin_layout Plain Layout
+
+		case(event)
+\end_layout
+
+\begin_layout Plain Layout
+
+		# This event happens whenever someone clicks the 'x' button.
+\end_layout
+
+\begin_layout Plain Layout
+
+		# Always respond to this, because it's rude not to.
+\end_layout
+
+\begin_layout Plain Layout
+
+		when QuitEvent
+\end_layout
+
+\begin_layout Plain Layout
+
+			finished = true
+\end_layout
+
+\begin_layout Plain Layout
+
+		# This event happens whenever someone presses a key.
+\end_layout
+
+\begin_layout Plain Layout
+
+		when KeyDownEvent
+\end_layout
+
+\begin_layout Plain Layout
+
+			# For the purposes of our demo, we're going to quit when this
+\end_layout
+
+\begin_layout Plain Layout
+
+			# happens.
+\end_layout
+
+\begin_layout Plain Layout
+
+			finished = true
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.quit()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+There are a number of new concepts:
+\end_layout
+
+\begin_layout Subsubsection
+Color Depth and Surface Flags
+\end_layout
+
+\begin_layout Standard
+When I created the screen, this time around, I gave it two extra arguments.
+ The first is the 
+\series bold
+color depth
+\series default
+ - this indicates how many bits a pixel should take up.
+ If you're running this on anything close to a modern computer, this will
+ almost always be 32.
+ However, you can't count on that always being the case.
+ That's why it's a good practice to put '0' in there.
+ That will allow the computer to use whatever color depth is the default
+ for it.
+ 
+\end_layout
+
+\begin_layout Standard
+The second argument was a list of flags.
+ These 
+\series bold
+surface flags
+\series default
+ are extra information used when setting up the screen.
+ We asked for a hardware surface, meaning all our drawing will be done directly
+ on the video card.
+ We also asked for double buffering support (more on this later) and for
+ our display to be full screen.
+ Keep in mind that these flags are all requests - depending on the underlying
+ hardware support, you may not get everything you ask for.
+\end_layout
+
+\begin_layout Subsubsection
+Converting Surfaces
+\end_layout
+
+\begin_layout Standard
+By default, whenever you load something using Surface.load, it's going to
+ be in whatever color depth it was on disk.
+ So if you load in an 8-bit image, Rubygame is going to have to convert
+ it to whatever you're using (likely 32 bits) every time it draws it on
+ the screen.
+ We explicitly convert it to save a lot of time and effort.
+\end_layout
+
+\begin_layout Subsubsection
+The Event Queue
+\end_layout
+
+\begin_layout Standard
+Some game frameworks use polling; with them, if you wanted to know if the
+ user was pressing a key, you'd have to constantly call the function that
+ asks if a key is being pressed.
+ Rubygame works via events - you'll be notified when a key is pressed, and
+ then you can check if it's the one you want.
+ All these events are put in the queue that we create.
+\end_layout
+
+\begin_layout Subsubsection
+Double Buffering
+\end_layout
+
+\begin_layout Standard
+Even if you draw something to the screen, this work is done in a 
+\begin_inset Quotes eld
+\end_inset
+
+Back Buffer
+\begin_inset Quotes erd
+\end_inset
+
+ - an area in memory that exists so you can prepare all your changes at
+ once.
+ The update() call in the first example says 
+\begin_inset Quotes eld
+\end_inset
+
+This part of the back buffer is ready to be drawn
+\begin_inset Quotes erd
+\end_inset
+
+.
+ If it's done right, just calling update() with the right rectangles can
+ be faster than updating the entire screen, but keep in mind that the more
+ time you spend tracking what parts of the screen need to be redrawn, the
+ less time you're saving.
+\end_layout
+
+\begin_layout Standard
+Double Buffering simply allows the back buffer and screen to flip places.
+ What this means to you is that the entire screen is updated at once and,
+ if your hardware supports it, it's done quickly.
+ The 'flip' function does all this for you.
+ If you didn't end up getting a hardware surface or one that supports double-buf
+fering, it falls back on simply updating the entire screen.
+\end_layout
+
+\begin_layout Standard
+Because it's simple, I'll be using double buffering for the rest of this
+ book.
+\end_layout
+
+\begin_layout Subsubsection
+Event Types
+\end_layout
+
+\begin_layout Standard
+The first thing we did with our queue was to enable 
+\begin_inset Quotes eld
+\end_inset
+
+new style
+\begin_inset Quotes erd
+\end_inset
+
+ events.
+ Without this, you'll get entirely different event classes that are deprecated.
+ When Rubygame 3 comes out, they'll be gone entirely, so it's a good idea
+ to get used to working with the new ones.
+ Every event you'll see generated comes from the Rubygame::Events namespace.
+\end_layout
+
+\begin_layout Standard
+Using a 'case' statement to go through each item in the queue is helpful
+ because it'll match on the class of the event, which is likely to determine
+ what you do next.
+\end_layout
+
+\begin_layout Standard
+The 
+\series bold
+QuitRequested
+\series default
+ happens when the user indicates they want to quit - they hit the 'x' button,
+ or press Alt-F4, or otherwise try to stop the application.
+ If you don't respond to this event, your app will keep running.
+ This would be the time to do things like quickly save a game or prompt
+ for a confirmation, but even then be very careful.
+ The user won't appreciate having to kill your program because it doesn't
+ appear to be closing right.
+\end_layout
+
+\begin_layout Standard
+The 
+\series bold
+KeyDownEvent
+\series default
+ is exactly what it sounds like: Whenever the user presses a key, this is
+ fired.
+ Later, we'll use the information in the 'event' variable but for now we
+ just quit.
+\end_layout
+
+\begin_layout Subsection
+Interactivity
+\end_layout
+
+\begin_layout Standard
+The previous example illustrated a full game loop, but not an interesting
+ one.
+ Sitting around displaying one image while waiting for the user to press
+ a key and then quitting is hardly the pinnacle of game design, after all.
+ Let's make it so the user can move the picture around:
+\end_layout
+
+\begin_layout Standard
+very_first_3.rb
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'rubygame'
+\end_layout
+
+\begin_layout Plain Layout
+
+include Rubygame
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.init()
+\end_layout
+
+\begin_layout Plain Layout
+
+# So that we can hold down the button and have it work
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.enable_key_repeat(0.5, 0.03)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+flags = [ HWSURFACE, DOUBLEBUF ] 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+screen = Screen.new( [640,480], 0, flags )
+\end_layout
+
+\begin_layout Plain Layout
+
+  
+\end_layout
+
+\begin_layout Plain Layout
+
+pic = Surface.load("rubygame.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+pic = pic.convert()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+queue = EventQueue.new()
+\end_layout
+
+\begin_layout Plain Layout
+
+queue.enable_new_style_events()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+finished = false
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# The location of our picture.
+\end_layout
+
+\begin_layout Plain Layout
+
+x = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+y = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# How many pixels per second it'll move.
+\end_layout
+
+\begin_layout Plain Layout
+
+speed = 100
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# The Clock object helps us move at a constant rate of speed, as we'll
+\end_layout
+
+\begin_layout Plain Layout
+
+# see later.
+\end_layout
+
+\begin_layout Plain Layout
+
+clock = Clock.new
+\end_layout
+
+\begin_layout Plain Layout
+
+# This is also going to become the default in Rubygame 3.0, so we might
+\end_layout
+
+\begin_layout Plain Layout
+
+# as well get used to it
+\end_layout
+
+\begin_layout Plain Layout
+
+clock.enable_tick_events()
+\end_layout
+
+\begin_layout Plain Layout
+
+# The clock lets us enter the amount of FPS we'd like.
+  It then slows
+\end_layout
+
+\begin_layout Plain Layout
+
+# us down to that number:
+\end_layout
+
+\begin_layout Plain Layout
+
+clock.target_framerate = 30
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# The game loop!
+\end_layout
+
+\begin_layout Plain Layout
+
+while not finished
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	# This is the number of seconds since last time we were here.
+\end_layout
+
+\begin_layout Plain Layout
+
+	# Knowing this number lets us smooth out motion correctly.
+\end_layout
+
+\begin_layout Plain Layout
+
+	delay = clock.tick.seconds
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	# Clear the screen first
+\end_layout
+
+\begin_layout Plain Layout
+
+	screen.fill( [0,0,0] )
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	pic.blit(screen, [x,y])
+\end_layout
+
+\begin_layout Plain Layout
+
+	screen.flip()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	queue.each do | event |
+\end_layout
+
+\begin_layout Plain Layout
+
+		case(event)
+\end_layout
+
+\begin_layout Plain Layout
+
+		when Events::QuitRequested
+\end_layout
+
+\begin_layout Plain Layout
+
+			finished = true
+\end_layout
+
+\begin_layout Plain Layout
+
+		when Events::KeyPressed
+\end_layout
+
+\begin_layout Plain Layout
+
+			# The 'key' field is a symbol
+\end_layout
+
+\begin_layout Plain Layout
+
+			if event.key == :up
+\end_layout
+
+\begin_layout Plain Layout
+
+				y -= speed * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+			elsif event.key == :down
+\end_layout
+
+\begin_layout Plain Layout
+
+				y += speed * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+			if event.key == :left
+\end_layout
+
+\begin_layout Plain Layout
+
+				x -= speed * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+			elsif event.key == :right
+\end_layout
+
+\begin_layout Plain Layout
+
+				x += speed * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		when Events::MouseMoved
+\end_layout
+
+\begin_layout Plain Layout
+
+			# The 'pos' field is an array of the form [x,y] which
+\end_layout
+
+\begin_layout Plain Layout
+
+			# indicates where the mouse event happened.
+\end_layout
+
+\begin_layout Plain Layout
+
+			x = event.pos[0]
+\end_layout
+
+\begin_layout Plain Layout
+
+			y = event.pos[1]
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.quit()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As before, I've done some new things:
+\end_layout
+
+\begin_layout Subsubsection
+Key Repeat
+\end_layout
+
+\begin_layout Standard
+You'll notice that the events we're reacting to when we're moving the image
+ around are simple 
+\series bold
+KeyPressed
+\series default
+ events.
+ We included a line at the very top to enable key repeat.
+ That way the user can hold down a button and Rubygame will keep generating
+ KeyPressed events for us.
+ This isn't the ideal way to handle continuous user input: There's a delay
+ between events and so relying on this method will always result in somewhat
+ choppy movement.
+ I'll show a better way to handle this in section
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "sec:Pong"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+The Clock
+\end_layout
+
+\begin_layout Standard
+If you kept an eye on your CPU usage while runing very_first_2.rb, you'll
+ probably notice that it spiked enormously.
+ It might seem a bit strange that clearing the screen and drawing an image
+ should take so much CPU power.
+ The fact is, it doesn't, but we didn't introduce any kind of delay or tell
+ the operating system we were willing to have it take over for a bit.
+ All we did was draw to the screen and look for input in a nonstop tight
+ loop.
+ It might seem like this is the proper way to work; after all, your game
+ will run its fastest if it doesn't bother to wait or put a delay in, but
+ keep in mind people aren't going to appreciate having their CPUs entirely
+ maxed out running just your game.
+\end_layout
+
+\begin_layout Standard
+The solution is to put a delay in, and Rubygame offers this in the form
+ of the Clock class.
+ You tell it how many FPS you'd like to be the maximum, and every time you
+ call clock.tick(), it delays so that you meet that FPS goal.
+ Obviously it can only do this if you're running faster than the goal.
+\end_layout
+
+\begin_layout Standard
+The second benefit of the Clock class is that clock.tick returns an object
+ that holds the number of seconds since the last time it was called.
+ Recall that earlier in the program, we defined the speed of our image in
+ pixels per second.
+ It'd be hard to actually make it go that speed if we didn't know how many
+ seconds had passed!
+\end_layout
+
+\begin_layout Subsubsection
+Events
+\end_layout
+
+\begin_layout Standard
+We looked over this briefly in the previous section, but now we're actually
+ doing something with our data.
+\end_layout
+
+\begin_layout Paragraph
+KeyPressed
+\end_layout
+
+\begin_layout Standard
+We use the 'key' field of this event to determine what to do, and for the
+ most part that's what you'll be relying on.
+ It's a symbol that corresponds to the key that was pressed.
+ So :left is the symbol for the left arrow, :w would be the symbol for the
+ 'w' key, :f1 is the symbol for F1, and so on.
+ For the most part the naming is obvious, but if you want to know the symbol
+ for an event there's a fairly simple program that will tell you.
+ I've provided it in Appendix 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "sec:Key-Symbol-Cheatsheet"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+You can tell which modifier keys were held down while the button was pressed
+ by looking at the 
+\begin_inset Quotes eld
+\end_inset
+
+modifiers
+\begin_inset Quotes erd
+\end_inset
+
+ field, and you can get a printable representation by looking at the contents
+ of 
+\begin_inset Quotes eld
+\end_inset
+
+string
+\begin_inset Quotes erd
+\end_inset
+
+.
+ That way if the user presses shift and 
+\begin_inset Quotes eld
+\end_inset
+
+/
+\begin_inset Quotes erd
+\end_inset
+
+, you don't have to just guess that this is 
+\begin_inset Quotes eld
+\end_inset
+
+?
+\begin_inset Quotes erd
+\end_inset
+
+.
+ (Especially because that may not be true on other keyboards!)
+\end_layout
+
+\begin_layout Paragraph
+MouseMoved
+\end_layout
+
+\begin_layout Standard
+I added this to show a different kind of event.
+ MouseMoved tells us that the mouse moved (surprise!).
+ We use this to move the image to wherever the mouse currently is.
+ The 
+\begin_inset Quotes eld
+\end_inset
+
+pos
+\begin_inset Quotes erd
+\end_inset
+
+ field holds the mouse position at the time the event happened.
+\end_layout
+
+\begin_layout Section
+Pong
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Pong"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+\start_of_appendix
+Key Symbol Cheatsheet
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Key-Symbol-Cheatsheet"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Official List
+\end_layout
+
+\begin_layout Standard
+You can find a list of all key symbols in the Rubygame API documentation
+ via the 
+\begin_inset Quotes eld
+\end_inset
+
+doc/keyboard_symbols.rdoc
+\begin_inset Quotes erd
+\end_inset
+
+ link or via the Rubygame Wiki at 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+http://rubygame.org/wiki/Keyboard_Symbols
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Guide
+\end_layout
+
+\begin_layout Standard
+Here are some basic rules for how the key symbols are generated:
+\end_layout
+
+\begin_layout Description
+Characters
+\begin_inset space ~
+\end_inset
+
+A-Z: Are simply the symbol versions of themselves.
+\end_layout
+
+\begin_layout Description
+Numbers: Are prefixed with 
+\begin_inset Quotes eld
+\end_inset
+
+number_
+\begin_inset Quotes erd
+\end_inset
+
+ for ordinary numbers, or 
+\begin_inset Quotes eld
+\end_inset
+
+keypad_
+\begin_inset Quotes erd
+\end_inset
+
+ for the ones on the numeric keypad.
+\end_layout
+
+\begin_layout Description
+Function
+\begin_inset space ~
+\end_inset
+
+Keys: Are prefixed with 
+\begin_inset Quotes eld
+\end_inset
+
+f
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="3">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Category
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Example
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Example
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Characters
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Quotes eld
+\end_inset
+
+a
+\begin_inset Quotes erd
+\end_inset
+
+ => :a
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Quotes eld
+\end_inset
+
+x
+\begin_inset Quotes erd
+\end_inset
+
+ => :x
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Numbers
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1 => :number_1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+5 => :keypad_5
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Function Keys
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+F5 => :f5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+F12 => :f12
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Cheatsheet.rb
+\end_layout
+
+\begin_layout Standard
+Here's a program you can use if you want to know what the symbol for any
+ given key is:
+\end_layout
+
+\begin_layout Standard
+cheatsheet.rb
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'rubygame'
+\end_layout
+
+\begin_layout Plain Layout
+
+include Rubygame
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.init()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+screen = Screen.new( [640,480] ) # The size of the window we want
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+queue = EventQueue.new()
+\end_layout
+
+\begin_layout Plain Layout
+
+queue.enable_new_style_events()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+finished = false
+\end_layout
+
+\begin_layout Plain Layout
+
+while not finished
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	queue.each do | event |
+\end_layout
+
+\begin_layout Plain Layout
+
+		case(event)
+\end_layout
+
+\begin_layout Plain Layout
+
+		when Events::QuitRequested
+\end_layout
+
+\begin_layout Plain Layout
+
+			finished = true
+\end_layout
+
+\begin_layout Plain Layout
+
+		when Events::KeyPressed
+\end_layout
+
+\begin_layout Plain Layout
+
+			puts "#{event.string} pressed, "+
+\end_layout
+
+\begin_layout Plain Layout
+
+				"mods are: #{event.modifiers.join(',')} "+
+\end_layout
+
+\begin_layout Plain Layout
+
+				"symbol is: :#{event.key}"
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	Clock.wait(100)
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.quit()
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
