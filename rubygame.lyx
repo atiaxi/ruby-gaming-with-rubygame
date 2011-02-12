@@ -724,6 +724,7 @@ new style
  Without this, you'll get entirely different event classes that are deprecated.
  When Rubygame 3 comes out, they'll be gone entirely, so it's a good idea
  to get used to working with the new ones.
+ Every event you'll see generated comes from the Rubygame::Events namespace.
 \end_layout
 
 \begin_layout Standard
@@ -767,6 +768,972 @@ The previous example illustrated a full game loop, but not an interesting
  Sitting around displaying one image while waiting for the user to press
  a key and then quitting is hardly the pinnacle of game design, after all.
  Let's make it so the user can move the picture around:
+\end_layout
+
+\begin_layout Standard
+very_first_3.rb
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'rubygame'
+\end_layout
+
+\begin_layout Plain Layout
+
+include Rubygame
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.init()
+\end_layout
+
+\begin_layout Plain Layout
+
+# So that we can hold down the button and have it work
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.enable_key_repeat(0.5, 0.03)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+flags = [ HWSURFACE, DOUBLEBUF ] 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+screen = Screen.new( [640,480], 0, flags )
+\end_layout
+
+\begin_layout Plain Layout
+
+  
+\end_layout
+
+\begin_layout Plain Layout
+
+pic = Surface.load("rubygame.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+pic = pic.convert()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+queue = EventQueue.new()
+\end_layout
+
+\begin_layout Plain Layout
+
+queue.enable_new_style_events()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+finished = false
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# The location of our picture.
+\end_layout
+
+\begin_layout Plain Layout
+
+x = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+y = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# How many pixels per second it'll move.
+\end_layout
+
+\begin_layout Plain Layout
+
+speed = 100
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# The Clock object helps us move at a constant rate of speed, as we'll
+\end_layout
+
+\begin_layout Plain Layout
+
+# see later.
+\end_layout
+
+\begin_layout Plain Layout
+
+clock = Clock.new
+\end_layout
+
+\begin_layout Plain Layout
+
+# This is also going to become the default in Rubygame 3.0, so we might
+\end_layout
+
+\begin_layout Plain Layout
+
+# as well get used to it
+\end_layout
+
+\begin_layout Plain Layout
+
+clock.enable_tick_events()
+\end_layout
+
+\begin_layout Plain Layout
+
+# The clock lets us enter the amount of FPS we'd like.
+  It then slows
+\end_layout
+
+\begin_layout Plain Layout
+
+# us down to that number:
+\end_layout
+
+\begin_layout Plain Layout
+
+clock.target_framerate = 30
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+# The game loop!
+\end_layout
+
+\begin_layout Plain Layout
+
+while not finished
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	# This is the number of seconds since last time we were here.
+\end_layout
+
+\begin_layout Plain Layout
+
+	# Knowing this number lets us smooth out motion correctly.
+\end_layout
+
+\begin_layout Plain Layout
+
+	delay = clock.tick.seconds
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	# Clear the screen first
+\end_layout
+
+\begin_layout Plain Layout
+
+	screen.fill( [0,0,0] )
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	pic.blit(screen, [x,y])
+\end_layout
+
+\begin_layout Plain Layout
+
+	screen.flip()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	queue.each do | event |
+\end_layout
+
+\begin_layout Plain Layout
+
+		case(event)
+\end_layout
+
+\begin_layout Plain Layout
+
+		when Events::QuitRequested
+\end_layout
+
+\begin_layout Plain Layout
+
+			finished = true
+\end_layout
+
+\begin_layout Plain Layout
+
+		when Events::KeyPressed
+\end_layout
+
+\begin_layout Plain Layout
+
+			# The 'key' field is a symbol
+\end_layout
+
+\begin_layout Plain Layout
+
+			if event.key == :up
+\end_layout
+
+\begin_layout Plain Layout
+
+				y -= speed * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+			elsif event.key == :down
+\end_layout
+
+\begin_layout Plain Layout
+
+				y += speed * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+			if event.key == :left
+\end_layout
+
+\begin_layout Plain Layout
+
+				x -= speed * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+			elsif event.key == :right
+\end_layout
+
+\begin_layout Plain Layout
+
+				x += speed * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		when Events::MouseMoved
+\end_layout
+
+\begin_layout Plain Layout
+
+			# The 'pos' field is an array of the form [x,y] which
+\end_layout
+
+\begin_layout Plain Layout
+
+			# indicates where the mouse event happened.
+\end_layout
+
+\begin_layout Plain Layout
+
+			x = event.pos[0]
+\end_layout
+
+\begin_layout Plain Layout
+
+			y = event.pos[1]
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.quit()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As before, I've done some new things:
+\end_layout
+
+\begin_layout Subsubsection
+Key Repeat
+\end_layout
+
+\begin_layout Standard
+You'll notice that the events we're reacting to when we're moving the image
+ around are simple 
+\series bold
+KeyPressed
+\series default
+ events.
+ We included a line at the very top to enable key repeat.
+ That way the user can hold down a button and Rubygame will keep generating
+ KeyPressed events for us.
+ This isn't the ideal way to handle continuous user input: There's a delay
+ between events and so relying on this method will always result in somewhat
+ choppy movement.
+ I'll show a better way to handle this in section
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "sec:Pong"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+The Clock
+\end_layout
+
+\begin_layout Standard
+If you kept an eye on your CPU usage while runing very_first_2.rb, you'll
+ probably notice that it spiked enormously.
+ It might seem a bit strange that clearing the screen and drawing an image
+ should take so much CPU power.
+ The fact is, it doesn't, but we didn't introduce any kind of delay or tell
+ the operating system we were willing to have it take over for a bit.
+ All we did was draw to the screen and look for input in a nonstop tight
+ loop.
+ It might seem like this is the proper way to work; after all, your game
+ will run its fastest if it doesn't bother to wait or put a delay in, but
+ keep in mind people aren't going to appreciate having their CPUs entirely
+ maxed out running just your game.
+\end_layout
+
+\begin_layout Standard
+The solution is to put a delay in, and Rubygame offers this in the form
+ of the Clock class.
+ You tell it how many FPS you'd like to be the maximum, and every time you
+ call clock.tick(), it delays so that you meet that FPS goal.
+ Obviously it can only do this if you're running faster than the goal.
+\end_layout
+
+\begin_layout Standard
+The second benefit of the Clock class is that clock.tick returns an object
+ that holds the number of seconds since the last time it was called.
+ Recall that earlier in the program, we defined the speed of our image in
+ pixels per second.
+ It'd be hard to actually make it go that speed if we didn't know how many
+ seconds had passed!
+\end_layout
+
+\begin_layout Subsubsection
+Events
+\end_layout
+
+\begin_layout Standard
+We looked over this briefly in the previous section, but now we're actually
+ doing something with our data.
+\end_layout
+
+\begin_layout Paragraph
+KeyPressed
+\end_layout
+
+\begin_layout Standard
+We use the 'key' field of this event to determine what to do, and for the
+ most part that's what you'll be relying on.
+ It's a symbol that corresponds to the key that was pressed.
+ So :left is the symbol for the left arrow, :w would be the symbol for the
+ 'w' key, :f1 is the symbol for F1, and so on.
+ For the most part the naming is obvious, but if you want to know the symbol
+ for an event there's a fairly simple program that will tell you.
+ I've provided it in Appendix 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "sec:Key-Symbol-Cheatsheet"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+You can tell which modifier keys were held down while the button was pressed
+ by looking at the 
+\begin_inset Quotes eld
+\end_inset
+
+modifiers
+\begin_inset Quotes erd
+\end_inset
+
+ field, and you can get a printable representation by looking at the contents
+ of 
+\begin_inset Quotes eld
+\end_inset
+
+string
+\begin_inset Quotes erd
+\end_inset
+
+.
+ That way if the user presses shift and 
+\begin_inset Quotes eld
+\end_inset
+
+/
+\begin_inset Quotes erd
+\end_inset
+
+, you don't have to just guess that this is 
+\begin_inset Quotes eld
+\end_inset
+
+?
+\begin_inset Quotes erd
+\end_inset
+
+.
+ (Especially because that may not be true on other keyboards!)
+\end_layout
+
+\begin_layout Paragraph
+MouseMoved
+\end_layout
+
+\begin_layout Standard
+I added this to show a different kind of event.
+ MouseMoved tells us that the mouse moved (surprise!).
+ We use this to move the image to wherever the mouse currently is.
+ The 
+\begin_inset Quotes eld
+\end_inset
+
+pos
+\begin_inset Quotes erd
+\end_inset
+
+ field holds the mouse position at the time the event happened.
+\end_layout
+
+\begin_layout Subsection
+Wrapup
+\end_layout
+
+\begin_layout Standard
+You officially now have enough knowledge of Rubygame to create a game.
+ You can create the screen, draw to it, and respond to user input, and that's
+ all you need to know!
+\end_layout
+
+\begin_layout Standard
+Of course, Rubygame has a great many features which make our life easier.
+ The next chapter will have us use everything we just learned as well as
+ some new information to create our first full game: That old standby 
+\begin_inset Quotes eld
+\end_inset
+
+Pong
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+Pong
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Pong"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+\start_of_appendix
+Key Symbol Cheatsheet
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Key-Symbol-Cheatsheet"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Official List
+\end_layout
+
+\begin_layout Standard
+You can find a list of all key symbols in the Rubygame API documentation
+ via the 
+\begin_inset Quotes eld
+\end_inset
+
+doc/keyboard_symbols.rdoc
+\begin_inset Quotes erd
+\end_inset
+
+ link or via the Rubygame Wiki at 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+http://rubygame.org/wiki/Keyboard_Symbols
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Guide
+\end_layout
+
+\begin_layout Standard
+Here are some basic rules for how the key symbols are generated:
+\end_layout
+
+\begin_layout Description
+Characters
+\begin_inset space ~
+\end_inset
+
+A-Z: Are simply the symbol versions of themselves.
+\end_layout
+
+\begin_layout Description
+Numbers: Are prefixed with 
+\begin_inset Quotes eld
+\end_inset
+
+number_
+\begin_inset Quotes erd
+\end_inset
+
+ for ordinary numbers, or 
+\begin_inset Quotes eld
+\end_inset
+
+keypad_
+\begin_inset Quotes erd
+\end_inset
+
+ for the ones on the numeric keypad.
+\end_layout
+
+\begin_layout Description
+Function
+\begin_inset space ~
+\end_inset
+
+Keys: Are prefixed with 
+\begin_inset Quotes eld
+\end_inset
+
+f
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="3">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Category
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Example
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Example
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Characters
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Quotes eld
+\end_inset
+
+a
+\begin_inset Quotes erd
+\end_inset
+
+ => :a
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Quotes eld
+\end_inset
+
+x
+\begin_inset Quotes erd
+\end_inset
+
+ => :x
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Numbers
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1 => :number_1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+5 => :keypad_5
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Function Keys
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+F5 => :f5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+F12 => :f12
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Cheatsheet.rb
+\end_layout
+
+\begin_layout Standard
+Here's a program you can use if you want to know what the symbol for any
+ given key is:
+\end_layout
+
+\begin_layout Standard
+cheatsheet.rb
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'rubygame'
+\end_layout
+
+\begin_layout Plain Layout
+
+include Rubygame
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.init()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+screen = Screen.new( [640,480] ) # The size of the window we want
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+queue = EventQueue.new()
+\end_layout
+
+\begin_layout Plain Layout
+
+queue.enable_new_style_events()
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+finished = false
+\end_layout
+
+\begin_layout Plain Layout
+
+while not finished
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	queue.each do | event |
+\end_layout
+
+\begin_layout Plain Layout
+
+		case(event)
+\end_layout
+
+\begin_layout Plain Layout
+
+		when Events::QuitRequested
+\end_layout
+
+\begin_layout Plain Layout
+
+			finished = true
+\end_layout
+
+\begin_layout Plain Layout
+
+		when Events::KeyPressed
+\end_layout
+
+\begin_layout Plain Layout
+
+			puts "#{event.string} pressed, "+
+\end_layout
+
+\begin_layout Plain Layout
+
+				"mods are: #{event.modifiers.join(',')} "+
+\end_layout
+
+\begin_layout Plain Layout
+
+				"symbol is: :#{event.key}"
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	Clock.wait(100)
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Rubygame.quit()
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_body
