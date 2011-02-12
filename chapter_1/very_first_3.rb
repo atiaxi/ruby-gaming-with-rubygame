@@ -22,7 +22,7 @@ x = 0
 y = 0
 
 # How many pixels per second it'll move.
-speed = 50
+speed = 100
 
 # The Clock object helps us move at a constant rate of speed, as we'll
 # see later.
@@ -64,6 +64,11 @@ while not finished
 			elsif event.key == :right
 				x += speed * delay
 			end
+		when Events::MouseMoved
+			# The 'pos' field is an array of the form [x,y] which
+			# indicates where the mouse event happened.
+			x = event.pos[0]
+			y = event.pos[1]
 		end
 	end
 end
