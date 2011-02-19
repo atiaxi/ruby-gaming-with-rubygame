@@ -58,3 +58,17 @@ class Paddle
 	end
 	
 end
+
+class AIPaddle < Paddle
+
+	attr_accessor :ball
+	
+	def update(delay)
+		if @ball
+			@keys[:up] = @ball.rect.centery < @rect.centery - 10
+			@keys[:down] = @ball.rect.centery > @rect.centery + 10
+		end
+		super(delay)
+	end
+
+end

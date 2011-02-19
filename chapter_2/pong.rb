@@ -1,10 +1,13 @@
 require 'rubygame'
 require 'paddle'
+require 'ball'
+require 'score'
 
 include Rubygame
 
 def main()
 	Rubygame.init()
+	Rubygame::TTF.setup()
 	flags = [HWSURFACE, DOUBLEBUF]
 	
 	screen = Screen.new( [640,480], 0, flags)
@@ -19,6 +22,20 @@ def main()
 	# Here's where we create our new paddle object, rather
 	# than use a bunch of separate variables for the task
 	paddle = Paddle.new("paddle.png")
+	paddle2 = AIPaddle.new("paddle.png")
+	paddle2.rect.right = screen.w
+	ball = Ball.new("ball.png", [paddle,paddle2])
+	paddle2.ball = ball
+	scores = [
+		Scoreboard.new("VeraMoBd.ttf"),
+		Scoreboard.new("VeraMoBd.ttf")
+	]
+	scores[0].rect.x = 60
+	scores[1].rect.right = screen.w - 60
+	
+	ball.when_score do |index|
+		scores[index].score += 1
+	end
 	
 	finished = false
 	while not finished
@@ -27,6 +44,11 @@ def main()
 		screen.fill( [0, 0, 0] )
 		
 		paddle.draw(screen)
+		paddle2.draw(screen)
+		ball.draw(screen)
+		scores.each do |board|
+			board.draw(screen)
+		end
 		screen.flip()
 		
 		queue.each do |event|
@@ -41,6 +63,16 @@ def main()
 		end
 		
 		paddle.update(delay)
+		paddle2.update(delay)
+		ball.update(delay)
+		
+		if scores[0].score > 15
+			raise "Game over - you win!"
+		end
+		
+		if scores[1].score > 15
+			raise "Game over - you lose!"
+		end
 		
 	end
 end
