@@ -55,6 +55,13 @@ Basics
 
 \begin_layout Section
 A Very Simple Rubygame Program
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:A-Very-Simple"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -1347,6 +1354,3354 @@ name "sec:Pong"
 
 \end_layout
 
+\begin_layout Standard
+Pong was one of the very first video games, dating back to 1972.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Quotes eld
+\end_inset
+
+But,
+\begin_inset Quotes erd
+\end_inset
+
+ you say, 
+\begin_inset Quotes eld
+\end_inset
+
+that demo we did in the first section is more sophisticated than that! Why
+ are we starting so low-tech?
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The answer is: Because it's the best way to learn.
+ So long as you're doing it for your own learning purposes, re-making old
+ games is an excellent way to figure out how things work, because you've
+ already got the concept and know how it should turn out.
+ All you need to provide is the code and some art, and even programmer art
+ ends up better-looking than 1972 Pong!
+\end_layout
+
+\begin_layout Subsection
+Sprites
+\end_layout
+
+\begin_layout Standard
+In section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:A-Very-Simple"
+
+\end_inset
+
+'s example, we kept track of all the information about our image in variables.
+ This works out fine so long as you have a very few images, but what if
+ you have more? You don't want to name everything image_1, image_2 or paddle_ima
+ge, paddle_x, paddle_y, etc.
+ A much easier way to keep track of these things would be in a class:
+\end_layout
+
+\begin_layout Standard
+simple_class_example.rb
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class Paddle
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :x, :y
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :speed_x, :speed_y
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :image
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It turns out that our theoretical Paddle class has a lot in common with
+ anything we'd want to draw on the screen - it's got a location and an image,
+ for instance.
+ We'd probably want to put in a draw() function that paints it to the screen.
+ It'd be handy to have a function that'd tell us if it's colliding with
+ a ball, as well.
+\end_layout
+
+\begin_layout Standard
+As it happens, these operations are so common that Rubygame has provided
+ a class for them...
+ sort of.
+ There's a mixin called Rubygame::Sprite that keeps information on where
+ a sprite is, as well as how to draw it to the screen.
+ You include it in your own objects in order to use its functionality.
+ Here's an initial look at the Paddle class using Rubygame::Sprite:
+\end_layout
+
+\begin_layout Standard
+paddle.rb
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'rubygame'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+include Rubygame
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+class Paddle
+\end_layout
+
+\begin_layout Plain Layout
+
+	include Sprites::Sprite
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	# Sprite already has an 'image' accessor for us, as well
+\end_layout
+
+\begin_layout Plain Layout
+
+	# as a 'rect' accessor that determines where the sprite is
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	# It doesn't give us a speed, though, so we're going to have
+\end_layout
+
+\begin_layout Plain Layout
+
+	# to provide that ourselves
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :speed
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(filename)
+\end_layout
+
+\begin_layout Plain Layout
+
+		# If you use the default draw function that the Sprite
+\end_layout
+
+\begin_layout Plain Layout
+
+		# mixin provides (and we are in this example), then you
+\end_layout
+
+\begin_layout Plain Layout
+
+		# need to have an @image variable
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image = Surface.load(filename).convert()
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		# This is a Rubygame Rectangle, and it provides us with all
+\end_layout
+
+\begin_layout Plain Layout
+
+		# kinds of useful functionality.
+  Like @image, it's required
+\end_layout
+
+\begin_layout Plain Layout
+
+		# for the Sprite mixin.
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect = Rect.new(0,0,@image.w, @image.h)
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@speed = 100
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let's see it in action - here's the very beginning of our pong program:
+\end_layout
+
+\begin_layout Standard
+pong.rb
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'rubygame'
+\end_layout
+
+\begin_layout Plain Layout
+
+require 'paddle'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+include Rubygame
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+def main()
+\end_layout
+
+\begin_layout Plain Layout
+
+	Rubygame.init()
+\end_layout
+
+\begin_layout Plain Layout
+
+	flags = [HWSURFACE, DOUBLEBUF]
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	screen = Screen.new( [640,480], 0, flags)
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	clock = Clock.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	clock.enable_tick_events()
+\end_layout
+
+\begin_layout Plain Layout
+
+	clock.target_framerate = 30
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	queue = EventQueue.new()
+\end_layout
+
+\begin_layout Plain Layout
+
+	queue.enable_new_style_events()
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	# Here's where we create our new paddle object, rather
+\end_layout
+
+\begin_layout Plain Layout
+
+	# than use a bunch of separate variables for the task
+\end_layout
+
+\begin_layout Plain Layout
+
+	paddle = Paddle.new("paddle.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	finished = false
+\end_layout
+
+\begin_layout Plain Layout
+
+	while not finished
+\end_layout
+
+\begin_layout Plain Layout
+
+		delay = clock.tick.seconds
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen.fill( [0, 0, 0] )
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle.draw(screen)
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen.flip()
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		queue.each do |event|
+\end_layout
+
+\begin_layout Plain Layout
+
+			case(event)
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::QuitRequested
+\end_layout
+
+\begin_layout Plain Layout
+
+				finished = true
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if __FILE__ == $0
+\end_layout
+
+\begin_layout Plain Layout
+
+	main()
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If anything, this has less functionality than the previous demo - we've
+ gone back to simply displaying an image on the screen.
+ A very ugly image, for that matter! But we did cover some important areas
+ getting to this point, and it's starting to look less like a simple demo
+ and more like a proper game.
+ Here's what's new:
+\end_layout
+
+\begin_layout Subsubsection
+The Sprite Mixin
+\end_layout
+
+\begin_layout Standard
+As mentioned in the code, including the sprite only requires you do two
+ things: First, provide an @image variable with the Surface that will be
+ drawn, and second, provide a @rect variable to represent where this image
+ is on screen.
+ You'll notice that we call Paddle.draw(screen) in the main 'pong.rb' file
+ but haven't defined it anywhere - that's because the Sprite mixin has provided
+ that code for us.
+ It's the same code as we used in the first example (using Surface.blit)
+ but since it's already been written for us, let's not reinvent the wheel!
+\end_layout
+
+\begin_layout Subsubsection
+The Paddle Object
+\end_layout
+
+\begin_layout Standard
+This isn't exactly a new Rubygame concept, given that we created it ourselves
+ up there, but it is an important one.
+ Separating our game objects out of the main loop is one step toward a more
+ object-oriented approach, and that's one that makes it easier to change
+ things later.
+ For similar reasons, this is also why we put the Paddle code in its own
+ file.
+ For now, we're not doing much else in the way of separation, but keep it
+ in mind as we go along.
+\end_layout
+
+\begin_layout Subsubsection
+This is boring!
+\end_layout
+
+\begin_layout Standard
+That's a good point: Let's put some interactivity into our paddle.
+ Add this to the initialize function in the Paddle class in paddle.rb:
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+@keys = {}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And then add these functions to the class:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def key(sym, pressed)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@keys[sym] = pressed
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def move(dx, dy)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.move!(dx,dy)
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		amount = delay * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:up]
+\end_layout
+
+\begin_layout Plain Layout
+
+			move(0,-amount)
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:down]
+\end_layout
+
+\begin_layout Plain Layout
+
+			move(0, amount)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:left]
+\end_layout
+
+\begin_layout Plain Layout
+
+			move(-amount, 0)
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:right]
+\end_layout
+
+\begin_layout Plain Layout
+
+			move(amount, 0)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The update function should look a little familiar - it's very similar to
+ the one we used in our first demo.
+ Instead of checking event types and then keys, though, we're referring
+ to a dictionary of keys.
+ This dictionary is in the form of :key => boolean, where :key is the key
+ in question, and the boolean is whether it's currently pressed or not.
+ We create this dictionary in initialize() and keep it up to date in the
+ key() function.
+ But if you ran this right now, you'd notice that nothing's happening.
+ That's for two reasons: One, the key() function isn't being called.
+ Two, even if it was, update() is also not being called! 
+\end_layout
+
+\begin_layout Standard
+Let's make some changes to pong.rb to fix that.
+ Change your queue loop to look like this:
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+		queue.each do |event|
+\end_layout
+
+\begin_layout Plain Layout
+
+			case(event)
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::QuitRequested
+\end_layout
+
+\begin_layout Plain Layout
+
+				finished = true
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::KeyPressed
+\end_layout
+
+\begin_layout Plain Layout
+
+				paddle.key(event.key, true)
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::KeyReleased
+\end_layout
+
+\begin_layout Plain Layout
+
+				paddle.key(event.key, false)
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle.update(delay)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now if you run that, you'll be able to move the image of the paddle all
+ around the screen.
+\end_layout
+
+\begin_layout Subsubsection
+But what exactly is happening there?
+\end_layout
+
+\begin_layout Standard
+We're actually doing the same thing we were doing in the first demo, it's
+ just somewhat removed from the internals now.
+ Here's an outline of what our game loop is like and how it's interacting
+ with paddle.rb:
+\end_layout
+
+\begin_layout Enumerate
+paddle.draw(screen) is called - this calls the sprite mixin that we included
+ in paddle.rb, which draws the @image variable to the screen at the @rect
+ location.
+\end_layout
+
+\begin_layout Enumerate
+If we get any key events - either pressed or released - we call the 'key'
+ function that sets up a :key => pressed/released relation in a dictionary.
+\end_layout
+
+\begin_layout Enumerate
+We call update(delay) on our paddle.
+ That's when it looks at the dictionary and sees if any of the keys it's
+ interested in are pressed.
+ If so, it moves the paddle.
+\end_layout
+
+\begin_layout Standard
+If you've paid very close attention to the differences between this and
+ the last demo, you'll notice there was a part of the setup we didn't do:
+ We never called enable_key_repeat.
+ But if you've ran the above, you've seen that the paddle moves around the
+ screen smoothly as long as you hold the button down.
+ What gives?
+\end_layout
+
+\begin_layout Subsubsection
+Smooth Moves
+\end_layout
+
+\begin_layout Standard
+The first demo moved things by reacting explicitly to the key press and
+ nothing else.
+ The key press events are (normally) only generated once, when you press
+ the key.
+ The enable_key_repeat function changes that, by feeding a stream of KeyPressed
+ events so long as you're holding the button down.
+ As mentioned before, this works for the most part but isn't ideal - it
+ can result in somewhat jerky behavior and creates an awful lot of event
+ objects.
+\end_layout
+
+\begin_layout Standard
+We get around that by storing the current state of the key in the paddle.
+ Any time we get an event, we update that state, but otherwise we don't
+ do any further processing.
+ Later, when we call update(delay), we check the current state of the key
+ to determine what to do.
+ Since we call that update function about 30 times a second and we only
+ change the state in response to the user doing something, we end up with
+ smooth movement.
+\end_layout
+
+\begin_layout Subsubsection
+Constraints
+\end_layout
+
+\begin_layout Standard
+You probably noticed something about the behavior of the paddle, and also
+ the rubygame logo from the first demo: You can easily move them off the
+ screen.
+ Obviously, this is not something we want to allow! Furthermore, it'd be
+ a bit like cheating if we left in the player's ability to move horizontally.
+ Change paddle.rb's update function to look like this:
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		amount = delay * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:up]
+\end_layout
+
+\begin_layout Plain Layout
+
+			move(0,-amount)
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:down]
+\end_layout
+
+\begin_layout Plain Layout
+
+			move(0, amount)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		# As long as the screen's been created, you can get it
+\end_layout
+
+\begin_layout Plain Layout
+
+		# from anywhere in the program using this
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen = Screen.get_surface()
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @rect.top < 0
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.top = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @rect.bottom > screen.h
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.bottom = screen.h
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Rectangle methods
+\end_layout
+
+\begin_layout Standard
+We haven't done much with the @rect object besides set it up in the first
+ place and then move it around.
+ It turns out that Rubygame::Rect has a large number of functions that can
+ prove very useful.
+ You can both get and set the top and bottom (and left and right, for that
+ matter), rather than adding the y location to the height and doing the
+ math yourself.
+\end_layout
+
+\begin_layout Subsubsection
+The Screen
+\end_layout
+
+\begin_layout Standard
+Screen.get_surface() will give you the screen, so long as it's been created,
+ anywhere in your program.
+ Be careful with it, though, as if you call it before you've actually created
+ the screen, it'll error out.
+\end_layout
+
+\begin_layout Subsubsection
+Okay, so why is the paddle so ugly?
+\end_layout
+
+\begin_layout Standard
+Because I'm a horrible artist.
+\end_layout
+
+\begin_layout Standard
+But that's probably not what you're referring to.
+ Rather, you're wondering what the garish magenta box outline around the
+ paddle is all about.
+ It comes down to background colors.
+ Because we want a rounded paddle but all images are loaded as squares,
+ we've got a portion of the image that's just background.
+ Now, you could take the easy way out and change that magenta to black,
+ and everything would look fine.
+ Later, though, if you wanted to change your background color to something
+ else you'd have to go through every image and re-paint its background.
+\end_layout
+
+\begin_layout Standard
+Imagine that, instead, you could just tell Rubygame that you want a certain
+ color to be treated as transparent.
+ Now, you could choose black or white but chances are good that those colors
+ are going to be in an image eventually.
+ Thus, we chose magenta.
+ Full red, no green, full blue - it's a horrible eye-catching color that
+ will, if we live fortunate lives, never occur in our images naturally.
+\end_layout
+
+\begin_layout Standard
+So, once we've picked a color, how do we tell Rubygame to use it as a background
+? Change your initialize() for the Paddle class to be this:
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+def initialize(filename)
+\end_layout
+
+\begin_layout Plain Layout
+
+		# If you use the default draw function that the Sprite
+\end_layout
+
+\begin_layout Plain Layout
+
+		# mixin provides (and we are in this example), then you
+\end_layout
+
+\begin_layout Plain Layout
+
+		# need to have an @image variable
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image = Surface.load(filename).convert()
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image.colorkey = [255, 0, 255]
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		# This is a Rubygame Rectangle, and it provides us with all
+\end_layout
+
+\begin_layout Plain Layout
+
+		# kinds of useful functionality.
+  Like @image, it's required
+\end_layout
+
+\begin_layout Plain Layout
+
+		# for the Sprite mixin.
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect = Rect.new(0,0,@image.w, @image.h)
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@speed = 100
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		# This will eventually hold the state of the entire keyboard
+\end_layout
+
+\begin_layout Plain Layout
+
+		@keys = {}
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The colorkey accessor controls which color (if any) should be treated as
+ the background color and not painted.
+ You specify the color the same way we did when we cleared the screen, in
+ [red,green,blue] and on a scale of 0-255.
+ Once that's done, run and see the (slightly) more beautiful paddle.
+\end_layout
+
+\begin_layout Subsection
+Moving on its own
+\end_layout
+
+\begin_layout Standard
+Our paddle is more or less in good enough shape.
+ Let's make the thing we're supposed to be batting around - the ball:
+\end_layout
+
+\begin_layout Standard
+ball.rb
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'rubygame'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+include Rubygame
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+class Ball
+\end_layout
+
+\begin_layout Plain Layout
+
+	include Sprites::Sprite
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(filename)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image = Surface.load(filename).convert()
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image.colorkey = [255,0,255]
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect = Rect.new(0,0,@image.w, @image.h)
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		reset
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def reset
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen = Screen.get_surface()
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.center = [screen.w/2, screen.h / 2]
+\end_layout
+
+\begin_layout Plain Layout
+
+		@direction = [-1.0, -1.0]
+\end_layout
+
+\begin_layout Plain Layout
+
+		@speed = 150
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		amount = delay * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.x += @direction[0] * amount;
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.y += @direction[1] * amount;
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+You'll probably notice that the initialize() routine is almost exactly the
+ same as the paddle's.
+ In the future we'll be taking advantage of this fact and making our own
+ classes to handle it, but for now we'll have to deal with duplicated code.
+\end_layout
+
+\begin_layout Standard
+What's new?
+\end_layout
+
+\begin_layout Subsubsection
+Reset
+\end_layout
+
+\begin_layout Standard
+About half of the initialization is actually done in the reset() function.
+ The reason for this is that the function puts the ball back in the middle
+ of the screen and sets its initial direction and speed.
+ We want that in its own function so we can call it later (such as when
+ one of the players scores a point) and not just at the beginning when it's
+ created
+\end_layout
+
+\begin_layout Subsubsection
+Update
+\end_layout
+
+\begin_layout Standard
+The update should look a little bit familiar - I'm doing the same scaling
+ technique I did with the paddle in order to keep it moving at a smooth
+ 150 pixels per second (or whatever its @speed happens to be at the time).
+ After that, though, note that I'm not taking any user input.
+ This is intentional - the only influence the player should have over the
+ ball is bouncing it against the paddle.
+ Instead, its 'x' location is increased by the first part of its direction,
+ and its 'y' location is increased by the second part.
+ We're keeping the 'direction' as a simple array because all we really want
+ to know is:
+\end_layout
+
+\begin_layout Description
+Is
+\begin_inset space ~
+\end_inset
+
+it
+\begin_inset space ~
+\end_inset
+
+traveling
+\begin_inset space ~
+\end_inset
+
+left
+\begin_inset space ~
+\end_inset
+
+or
+\begin_inset space ~
+\end_inset
+
+right? If so, the first item in @direction will be -1 for left or 1 for
+ right, and
+\end_layout
+
+\begin_layout Description
+Is
+\begin_inset space ~
+\end_inset
+
+it
+\begin_inset space ~
+\end_inset
+
+traveling
+\begin_inset space ~
+\end_inset
+
+up
+\begin_inset space ~
+\end_inset
+
+or
+\begin_inset space ~
+\end_inset
+
+down? Similarly, the second item in @direction will be -1 for up or 1 for
+ down.
+\end_layout
+
+\begin_layout Subsubsection
+Adding the ball to the field
+\end_layout
+
+\begin_layout Standard
+Running the game right now will have no effect, because we don't actually
+ use our ball object anywhere.
+ So open up 'pong.rb' and add the following line to the top after the other
+ 'require' statements:
+\end_layout
+
+\begin_layout LyX-Code
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'ball'
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Then rewrite the game loop as follows:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	paddle = Paddle.new("paddle.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+	ball = Ball.new("ball.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	finished = false
+\end_layout
+
+\begin_layout Plain Layout
+
+	while not finished
+\end_layout
+
+\begin_layout Plain Layout
+
+		delay = clock.tick.seconds
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen.fill( [0, 0, 0] )
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle.draw(screen)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ball.draw(screen)
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen.flip()
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		queue.each do |event|
+\end_layout
+
+\begin_layout Plain Layout
+
+			case(event)
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::QuitRequested
+\end_layout
+
+\begin_layout Plain Layout
+
+				finished = true
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::KeyPressed
+\end_layout
+
+\begin_layout Plain Layout
+
+				paddle.key(event.key, true)
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::KeyReleased
+\end_layout
+
+\begin_layout Plain Layout
+
+				paddle.key(event.key, false)
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle.update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ball.update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If you run this, you'll be able to behold the wonder of the ball moving
+ all on its own...
+ right off the screen!
+\end_layout
+
+\begin_layout Subsubsection
+Constraints, part 2
+\end_layout
+
+\begin_layout Standard
+Naturally this is going to be a very hard game of pong if the ball won't
+ stay on the screen.
+ Let's add a function to ball.rb:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def check_collision
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen = Screen.get_surface()
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(@rect.top <= 0 or @rect.bottom > screen.h)
+\end_layout
+
+\begin_layout Plain Layout
+
+			@direction[1] = -@direction[1]
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(@rect.left <= 0 or @rect.right >= screen.w)
+\end_layout
+
+\begin_layout Plain Layout
+
+			@direction[0] = - @direction[0]
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And make sure it's called in the update:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		amount = delay * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.x += @direction[0] * amount;
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.y += @direction[1] * amount;
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		check_collision
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Running this gives us a slightly better result, in that the ball now bounces
+ around the screen.
+ It doesn't bounce off of the player's paddle, though.
+\end_layout
+
+\begin_layout Standard
+There are a few ways to handle this sort of collision detection:
+\end_layout
+
+\begin_layout Description
+Just
+\begin_inset space ~
+\end_inset
+
+hack
+\begin_inset space ~
+\end_inset
+
+it
+\begin_inset space ~
+\end_inset
+
+together: We could put a function in our game loop that checks to see if
+ the ball is colliding with the paddle and, if so, bounce it appropriately.
+ This would work for our example, but remember we're going to be shortly
+ adding another paddle.
+ Any more objects and it'd get really complicated, really quickly.
+\end_layout
+
+\begin_layout Description
+Dedicated
+\begin_inset space ~
+\end_inset
+
+collision
+\begin_inset space ~
+\end_inset
+
+manager: If we had an object whose job it was to keep track of all the sprites
+ on screen and test them against each other for collisions, we could put
+ all our testing logic in there.
+ That way we could add as many objects as we wanted and still have it work.
+ Overall, this is one of the better solutions (and one we'll be examining
+ later) but it requires that you've planned out your objects and how you
+ want them to interact.
+ They need to be general enough for a manager to be able to deal with them
+ en masse, and we haven't done that yet.
+ That leaves a third option:
+\end_layout
+
+\begin_layout Description
+Let
+\begin_inset space ~
+\end_inset
+
+the
+\begin_inset space ~
+\end_inset
+
+objects
+\begin_inset space ~
+\end_inset
+
+handle
+\begin_inset space ~
+\end_inset
+
+it: Specifically, we can tell the ball what sprites to look for, and it'll
+ check for collisions with them.
+ This is also a good solution if you know what objects you're going to be
+ potentially colliding with beforehand.
+ In our case, we do, so this is the approach we'll take for this example.
+\end_layout
+
+\begin_layout Standard
+We need to rewrite our ball's constructor to take in the paddles it'll be
+ colliding with.
+ Change ball.rb's initialize to the following:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def initialize(filename, paddles)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image = Surface.load(filename).convert()
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image.colorkey = [255,0,255]
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect = Rect.new(0,0,@image.w, @image.h)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@paddles = paddles
+\end_layout
+
+\begin_layout Plain Layout
+
+		reset
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+I'm going to do a little rewriting of our check_collision function, and
+ I'm adding a new function called bounce():
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def bounce(index)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@direction[index] = -@direction[index]
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def check_collision
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen = Screen.get_surface()
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(@rect.top <= 0 or @rect.bottom > screen.h)
+\end_layout
+
+\begin_layout Plain Layout
+
+			bounce(1)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(@rect.left <= 0 or @rect.right >= screen.w)
+\end_layout
+
+\begin_layout Plain Layout
+
+			bounce(0)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@paddles.each do |paddle|
+\end_layout
+
+\begin_layout Plain Layout
+
+			if collide_sprite?(paddle)
+\end_layout
+
+\begin_layout Plain Layout
+
+				bounce(0)
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Two new things here:
+\end_layout
+
+\begin_layout Subsubsection
+Bounce
+\end_layout
+
+\begin_layout Standard
+The bounce() function takes an index into the 'direction' array and negates
+ whatever's there.
+ If the index is 0, it changes from right to left or vice versa.
+ If it's one, it changes the up/down direction.
+ It's basically doing the same thing the old code was doing, only now the
+ part that actually changes the direction is on its own.
+ This is helpful if we want to do something every time the ball bounces
+ (which we will, later).
+\end_layout
+
+\begin_layout Subsubsection
+collide_sprite?
+\end_layout
+
+\begin_layout Standard
+This is another gift that the Sprite mixin has given us.
+ It takes the rectangle of the current sprite and checks to see if it collides
+ with the rectangle of the given sprite.
+ If so, we call our 'bounce' function.
+\end_layout
+
+\begin_layout Standard
+This is a very simple way to do collision detection, and also somewhat wrong.
+ We wait until we've already moved the ball to see if it's colliding with
+ anything, and only then do we change its direction.
+ If the ball or the player is moving fast, it's possible that the direction
+ change won't be enough to push the ball away, in which case it'll change
+ direction again (because it's still colliding).
+ To the player, it'll look like the ball is stuck in the paddle! Fortunately,
+ it's unlikely that the player is actually going to move that quickly, so
+ in this case we won't take any additional measures.
+ We'll address ways to deal with the problem in future projects.
+\end_layout
+
+\begin_layout Subsubsection
+It doesn't work
+\end_layout
+
+\begin_layout Standard
+Trying to run our program now will fail, because while we changed the constructo
+r for Ball, we never actually changed how we're calling it.
+ Go back to pong.rb and change the line that creates the Ball to:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ball = Ball.new("ball.png", [paddle])
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Yep, we're passing in an array of one paddle, but that'll change once we
+ create another one.
+ Run the game and enjoy playing a solitaire version of pong that you can't
+ lose.
+ At least the ball bounces off your paddle now!
+\end_layout
+
+\begin_layout Subsection
+Your opponent
+\end_layout
+
+\begin_layout Standard
+Okay, solitaire is boring, let's add in that other paddle.
+ Change your game loop in pong.rb to look like this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	paddle = Paddle.new("paddle.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+	paddle2 = Paddle.new("paddle.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+	paddle2.rect.right = screen.w
+\end_layout
+
+\begin_layout Plain Layout
+
+	ball = Ball.new("ball.png", [paddle,paddle2])
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	finished = false
+\end_layout
+
+\begin_layout Plain Layout
+
+	while not finished
+\end_layout
+
+\begin_layout Plain Layout
+
+		delay = clock.tick.seconds
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen.fill( [0, 0, 0] )
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle.draw(screen)
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle2.draw(screen)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ball.draw(screen)
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen.flip()
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		queue.each do |event|
+\end_layout
+
+\begin_layout Plain Layout
+
+			case(event)
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::QuitRequested
+\end_layout
+
+\begin_layout Plain Layout
+
+				finished = true
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::KeyPressed
+\end_layout
+
+\begin_layout Plain Layout
+
+				paddle.key(event.key, true)
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::KeyReleased
+\end_layout
+
+\begin_layout Plain Layout
+
+				paddle.key(event.key, false)
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle.update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle2.update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ball.update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+That snippet of code is getting bigger and bigger, but really all we did
+ was add the new paddle, put it over to the right side of the screen, and
+ make sure it was getting drawn.
+ If you run this, you'll see a two-player pong setup but the right paddle
+ will never move.
+ We have two ways of doing that:
+\end_layout
+
+\begin_layout Description
+Add
+\begin_inset space ~
+\end_inset
+
+more
+\begin_inset space ~
+\end_inset
+
+controls: The paddle currently looks for the 'up' and 'down' keys to control
+ its movement.
+ We could change it so that it'd know if it was player1 or player2 and look
+ for 'a' and 'z' if it was player 1.
+ We'd have to add paddle2.key() calls to the game loop, but it'd be pretty
+ simple and is essentially a rehash of what we've already done.
+ That's why we're going with option #2:
+\end_layout
+
+\begin_layout Description
+Have
+\begin_inset space ~
+\end_inset
+
+the
+\begin_inset space ~
+\end_inset
+
+computer
+\begin_inset space ~
+\end_inset
+
+take
+\begin_inset space ~
+\end_inset
+
+over: We can create a subclass of Paddle that doesn't rely on user input.
+ Like the ball, it'll do its own thing.
+ In this case, it'll try to move itself as close to the ball as it can.
+\end_layout
+
+\begin_layout Standard
+We're subclassing paddle rather than creating an entirely new sprite class
+ because the only difference is how their update() function works.
+ And as you'll see, it's not really that different at all.
+ Add this to the bottom of your paddle.rb:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class AIPaddle < Paddle
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :ball
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @ball
+\end_layout
+
+\begin_layout Plain Layout
+
+			@keys[:up] = @ball.rect.centery < @rect.centery - 10
+\end_layout
+
+\begin_layout Plain Layout
+
+			@keys[:down] = @ball.rect.centery > @rect.centery + 10
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		super(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+That's really all you need.
+ If the ball's center is above where the paddle is, it'll move up (by pretending
+ its user pushed its 'up' button) and if the ball's center is below, it'll
+ move down.
+ I put the extra 10 pixels in there so it's not perfect and it isn't moving
+ all the time.
+\end_layout
+
+\begin_layout Standard
+It's easy to see this in action, go back to pong.rb and change the paddle
+ setup to:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	paddle = Paddle.new("paddle.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+	paddle2 = AIPaddle.new("paddle.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+	paddle2.rect.right = screen.w
+\end_layout
+
+\begin_layout Plain Layout
+
+	ball = Ball.new("ball.png", [paddle,paddle2])
+\end_layout
+
+\begin_layout Plain Layout
+
+	paddle2.ball = ball
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Besides changing Paddle to AIPaddle in the case of paddle2, we also had
+ to add a line telling paddle2 where its ball is.
+ Otherwise it wouldn't know where to move!
+\end_layout
+
+\begin_layout Standard
+Run the game and enjoy playing against a flawless opponent in a game you
+ can't win or lose.
+ Obviously, we're going to have to put some kind of scoring system in if
+ we want this game to go anywhere.
+\end_layout
+
+\begin_layout Subsection
+Text
+\end_layout
+
+\begin_layout Standard
+Rubygame offers support for two kinds of fonts: SFont and TTF.
+ SFont is a bitmap font in use primarily in some linux games and libraries,
+ while TTF is in wide use by both linux and windows systems.
+ Given TTF's relative ubiquity and the ease of finding new fonts for it,
+ this book will concentrate on the latter.
+\end_layout
+
+\begin_layout Standard
+We'll be using the free Bitstream Vera font from the GNOME collection throughout
+ the book - it's included in this book's accompanying source code and is
+ available under a very liberal license (essentially, you can use it in
+ whatever games you want).
+\end_layout
+
+\begin_layout Standard
+The first part of using the TTF library is setting it up - like Rubygame,
+ it also needs to have a setup function called before it can be used.
+ So back in pong.rb, add this to the beginning of main():
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+def main()
+\end_layout
+
+\begin_layout Plain Layout
+
+	Rubygame.init()
+\end_layout
+
+\begin_layout Plain Layout
+
+	Rubygame::TTF.setup()
+\end_layout
+
+\begin_layout Plain Layout
+
+	flags = [HWSURFACE, DOUBLEBUF]
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Next, we're going to use what we can from our sprite mixin.
+ Because a TTF can't just be drawn like an ordinary image, we have to get
+ a bit fancy.
+ Here's what score.rb looks like:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'rubygame'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+include Rubygame
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+class Scoreboard
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	include Sprites::Sprite
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_reader :score
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(filename, initial_score = 0)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@font = TTF.new(filename, 18)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect = Rect.new(0,0,0,0)
+\end_layout
+
+\begin_layout Plain Layout
+
+		self.score = initial_score
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def score=(new_score)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@score = new_score
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image = @font.render(
+\end_layout
+
+\begin_layout Plain Layout
+
+			@score.to_s,     # The text to render
+\end_layout
+
+\begin_layout Plain Layout
+
+			true,            # Do we want antialiasing?
+\end_layout
+
+\begin_layout Plain Layout
+
+			[255,255,255])   # The color of the text
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.w = @image.w
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.h = @image.h
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This one has a filename like the ones that made images, but unlike them
+ we use it to load a TTF.
+ The next thing we do is to create a rectangle with no width or height.
+ Again, unlike the images we can't know what size this will be until we
+ try to draw a string using it.
+ Next, we use the 'score=' function to do exactly that.
+\end_layout
+
+\begin_layout Subsubsection
+Rendering text
+\end_layout
+
+\begin_layout Standard
+You can't directly blit a font to the screen like you can with an image.
+ Instead, the TTF.render() function creates a Surface, and you can use that.
+ We opt to do this once, when the score changes, rather than every frame,
+ which would get a bit slow.
+ Once we've actually put the text onto a surface, we can then measure that
+ surface and set our @rect accordingly.
+\end_layout
+
+\begin_layout Subsubsection
+Adding more objects
+\end_layout
+
+\begin_layout Standard
+The game loop is getting incredibly crowded at this point! pong.rb's loop
+ should look like:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	paddle = Paddle.new("paddle.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+	paddle2 = AIPaddle.new("paddle.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+	paddle2.rect.right = screen.w
+\end_layout
+
+\begin_layout Plain Layout
+
+	ball = Ball.new("ball.png", [paddle,paddle2])
+\end_layout
+
+\begin_layout Plain Layout
+
+	paddle2.ball = ball
+\end_layout
+
+\begin_layout Plain Layout
+
+	scores = [
+\end_layout
+
+\begin_layout Plain Layout
+
+		Scoreboard.new("VeraMoBd.ttf"),
+\end_layout
+
+\begin_layout Plain Layout
+
+		Scoreboard.new("VeraMoBd.ttf")
+\end_layout
+
+\begin_layout Plain Layout
+
+	]
+\end_layout
+
+\begin_layout Plain Layout
+
+	scores[0].rect.x = 60
+\end_layout
+
+\begin_layout Plain Layout
+
+	scores[1].rect.right = screen.w - 60
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	finished = false
+\end_layout
+
+\begin_layout Plain Layout
+
+	while not finished
+\end_layout
+
+\begin_layout Plain Layout
+
+		delay = clock.tick.seconds
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen.fill( [0, 0, 0] )
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle.draw(screen)
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle2.draw(screen)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ball.draw(screen)
+\end_layout
+
+\begin_layout Plain Layout
+
+		scores.each do |board|
+\end_layout
+
+\begin_layout Plain Layout
+
+			board.draw(screen)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen.flip()
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		queue.each do |event|
+\end_layout
+
+\begin_layout Plain Layout
+
+			case(event)
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::QuitRequested
+\end_layout
+
+\begin_layout Plain Layout
+
+				finished = true
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::KeyPressed
+\end_layout
+
+\begin_layout Plain Layout
+
+				paddle.key(event.key, true)
+\end_layout
+
+\begin_layout Plain Layout
+
+			when Events::KeyReleased
+\end_layout
+
+\begin_layout Plain Layout
+
+				paddle.key(event.key, false)
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle.update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle2.update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ball.update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Again, a lot of text for relatively few changes.
+ We created the scoreboards in an array and then later painted them to the
+ screen.
+ Note that we don't call update() on them, as they are only going to change
+ when the score changes.
+ Speaking of which, when is that happening?
+\end_layout
+
+\begin_layout Subsection
+Callbacks
+\end_layout
+
+\begin_layout Standard
+The check_collision function of the Ball object already knows if we've gone
+ off either side of the screen, so it would seem the logical place to change
+ the score would be there.
+ There's only one problem: The ball doesn't know anything about the scoreboard.
+\end_layout
+
+\begin_layout Standard
+As before, there are a few ways to handle this.
+ We could do the same thing we did with the paddles and explicitly pass
+ the scoreboards in, but this even further tightly couples the ball to the
+ rest of the objects in the game.
+ The more things we add to the ball object, the more complicated it gets
+ and the more variables we need to keep track of.
+ We don't want it to look like the game loop up there, after all!
+\end_layout
+
+\begin_layout Standard
+Another way to handle this is via a callback.
+ Essentially, we write a function that handles scoring, and we tell the
+ Ball object to call that function when the subject comes up.
+ Here's how we'll use it in pong.rb:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	scores = [
+\end_layout
+
+\begin_layout Plain Layout
+
+		Scoreboard.new("VeraMoBd.ttf"),
+\end_layout
+
+\begin_layout Plain Layout
+
+		Scoreboard.new("VeraMoBd.ttf")
+\end_layout
+
+\begin_layout Plain Layout
+
+	]
+\end_layout
+
+\begin_layout Plain Layout
+
+	scores[0].rect.x = 60
+\end_layout
+
+\begin_layout Plain Layout
+
+	scores[1].rect.right = screen.w - 60
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	ball.when_score do |index|
+\end_layout
+
+\begin_layout Plain Layout
+
+		scores[index].score += 1
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Pretty simple, really, at least from this side of the equation.
+ Of course, running this will fail miserably because we haven't written
+ the when_score function yet.
+ Go over to ball.rb and add these two functions:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def announce_score(index)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @score_callback
+\end_layout
+
+\begin_layout Plain Layout
+
+			@score_callback.call(index)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def when_score(&block)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@score_callback = block
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This will make the game run, but points still aren't scored.
+ That's because we need to change the way check_collision works:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def check_collision
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen = Screen.get_surface()
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(@rect.top <= 0 or @rect.bottom > screen.h)
+\end_layout
+
+\begin_layout Plain Layout
+
+			bounce(1)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(@rect.left <= 0)
+\end_layout
+
+\begin_layout Plain Layout
+
+			announce_score(1)
+\end_layout
+
+\begin_layout Plain Layout
+
+			reset
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(@rect.right >= screen.w)
+\end_layout
+
+\begin_layout Plain Layout
+
+			announce_score(0)
+\end_layout
+
+\begin_layout Plain Layout
+
+			reset
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@paddles.each do |paddle|
+\end_layout
+
+\begin_layout Plain Layout
+
+			if collide_sprite?(paddle)
+\end_layout
+
+\begin_layout Plain Layout
+
+				bounce(0)
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+So, flow of scoring goes as follows:
+\end_layout
+
+\begin_layout Enumerate
+At the beginning of the game, we call when_score with a block of code that
+ adds '1' to whichever side scored.
+ Because calling score= on the Scoreboard object causes it to re-draw its
+ image, that one line of code is all we have to do to update the score.
+\end_layout
+
+\begin_layout Enumerate
+Later, when the ball goes off the edge, the check_collision function figures
+ out who let it through, and announces that the other side should get a
+ point
+\end_layout
+
+\begin_layout Enumerate
+The announce_score function calls the block of code that was set aside earlier
+ and informs it of the side that scored.
+\end_layout
+
+\begin_layout Standard
+Callbacks are a very powerful way to de-couple your objects.
+ Notice that the Ball didn't need to know anything about the Scoreboards
+ or how they worked.
+ We could replace the scoreboards with smilie-face sprites that light up
+ depending on how high your score is, and we wouldn't have to change a single
+ line of code in ball.rb to deal with it.
+\end_layout
+
+\begin_layout Subsection
+Winning and Losing
+\end_layout
+
+\begin_layout Standard
+This game is...
+ boring.
+ The computer still plays a flawless game and the ball moves slowly enough
+ that it's probably pretty easy for you to keep it going.
+ We need some challenge.
+ Remember earlier when I made ball.rb's 
+\begin_inset Quotes eld
+\end_inset
+
+bounce
+\begin_inset Quotes erd
+\end_inset
+
+ functionality into a separate function? Change it as follows and you'll
+ see why:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def bounce(index)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@direction[index] = -@direction[index]
+\end_layout
+
+\begin_layout Plain Layout
+
+		@speed *= 1.1
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Play that, and you'll soon have a challenge on your hands! Each time the
+ ball bounces, whether against a paddle or the wall, it speeds up by 10%.
+ If you're quick, you can win simply because the computer tries to move
+ toward where the ball currently is, rather than where it will be.
+\end_layout
+
+\begin_layout Standard
+The game, while at least a bit exciting now, has a tendency to go on forever.
+ This is because we haven't put any win conditions in.
+ Here are some simple ones to add to the bottom of the loop in pong.rb:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+		paddle.update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		paddle2.update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ball.update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if scores[0].score > 15
+\end_layout
+
+\begin_layout Plain Layout
+
+			raise "Game over - you win!"
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if scores[1].score > 15
+\end_layout
+
+\begin_layout Plain Layout
+
+			raise "Game over - you lose!"
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Raising an exception is hardly the most elegant way to congratulate a winner,
+ but for now it gets our job done.
+\end_layout
+
+\begin_layout Subsection
+Wrapup
+\end_layout
+
+\begin_layout Standard
+Here's what you've accomplished over the previous demo:
+\end_layout
+
+\begin_layout Itemize
+You use Sprites to put things on the screen now, rather than drawing it
+ yourself,
+\end_layout
+
+\begin_layout Itemize
+The sprites know how to react to user input
+\end_layout
+
+\begin_layout Itemize
+They can move on their own
+\end_layout
+
+\begin_layout Itemize
+You can check for collisions
+\end_layout
+
+\begin_layout Itemize
+You can draw text as a sprite, and
+\end_layout
+
+\begin_layout Itemize
+You can win or lose.
+ 
+\end_layout
+
+\begin_layout Standard
+Congratulations, you've made your first Rubygame game!
+\end_layout
+
+\begin_layout Standard
+While most of the code is far more elegant than the initial run, there's
+ still a lot that can be done.
+ The ball is fairly highly coupled with the paddles, for instance, and all
+ our game objects live in the game loop.
+ Also, every object that's in the game is created at the beginning - nothing's
+ ever added or removed.
+ What if you want to create new sprites on the fly, or get rid of them?
+ That's what we'll be covering next when we re-make another game.
+\end_layout
+
+\begin_layout Section
+Asteroids
+\end_layout
+
 \begin_layout Section
 \start_of_appendix
 Key Symbol Cheatsheet
@@ -1734,6 +5089,10 @@ Rubygame.quit()
 \end_inset
 
 
+\end_layout
+
+\begin_layout Section
+Full Code Listings
 \end_layout
 
 \end_body
