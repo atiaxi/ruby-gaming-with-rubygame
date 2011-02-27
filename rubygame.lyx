@@ -1,4 +1,4 @@
-#LyX 1.6.8 created this file. For more info see http://www.lyx.org/
+#LyX 1.6.7 created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -4702,6 +4702,1887 @@ While most of the code is far more elegant than the initial run, there's
 Asteroids
 \end_layout
 
+\begin_layout Standard
+The original Asteroids was released in 1979.
+ We're moving up the technology tree now!
+\end_layout
+
+\begin_layout Subsection
+A Game Engine
+\end_layout
+
+\begin_layout Standard
+Before, every time we wanted to add another sprite to our game, we had to
+ go through a number of hoops.
+ We had to put it in another variable, draw it, update it, and, if necessary,
+ pass keystrokes to it.
+ Even more annoyingly, these steps were exactly the same for each new sprite.
+ Wouldn't it be handy if we had a more standard way of doing that?
+\end_layout
+
+\begin_layout Standard
+Yes.
+ Yes it would.
+ So let's do that.
+ We're going to make a small game engine that'll take over a lot of the
+ duties that our main() function was handling before.
+ It'll keep hold of the screen and draw and update anything we tell it to.
+ The code to do this is a bit long, but it should look familiar from earlier
+ examples:
+\end_layout
+
+\begin_layout Standard
+engine.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'rubygame'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+include Rubygame
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+class Engine
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :flags
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :screen_width
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :screen_height
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :running
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :bgcolor
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize()
+\end_layout
+
+\begin_layout Plain Layout
+
+		Rubygame.init()
+\end_layout
+
+\begin_layout Plain Layout
+
+		@flags = [HWSURFACE, DOUBLEBUF]
+\end_layout
+
+\begin_layout Plain Layout
+
+		@screen_width = 640
+\end_layout
+
+\begin_layout Plain Layout
+
+		@screen_height = 480
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@clock = Clock.new
+\end_layout
+
+\begin_layout Plain Layout
+
+		@clock.enable_tick_events()
+\end_layout
+
+\begin_layout Plain Layout
+
+		target_framerate=30
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@queue = EventQueue.new()
+\end_layout
+
+\begin_layout Plain Layout
+
+		@queue.enable_new_style_events()
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@bgcolor = [ 0, 0, 0 ]
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	# Lazy initialization for screen
+\end_layout
+
+\begin_layout Plain Layout
+
+	def screen
+\end_layout
+
+\begin_layout Plain Layout
+
+		if not @screen
+\end_layout
+
+\begin_layout Plain Layout
+
+			resolution = [@screen_width, @screen_height]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@screen = Screen.new( resolution, 0, @flags )
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		return @screen
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def target_framerate=(value)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@clock.target_framerate = value
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def run
+\end_layout
+
+\begin_layout Plain Layout
+
+		@running = true
+\end_layout
+
+\begin_layout Plain Layout
+
+		while running
+\end_layout
+
+\begin_layout Plain Layout
+
+			delay = @clock.tick.seconds
+\end_layout
+
+\begin_layout Plain Layout
+
+			screen.fill( @bgcolor )
+\end_layout
+
+\begin_layout Plain Layout
+
+			
+\end_layout
+
+\begin_layout Plain Layout
+
+			# TODO: Drawing
+\end_layout
+
+\begin_layout Plain Layout
+
+			
+\end_layout
+
+\begin_layout Plain Layout
+
+			screen.flip()
+\end_layout
+
+\begin_layout Plain Layout
+
+			
+\end_layout
+
+\begin_layout Plain Layout
+
+			@queue.each do |event|
+\end_layout
+
+\begin_layout Plain Layout
+
+				case(event)
+\end_layout
+
+\begin_layout Plain Layout
+
+				when Events::QuitRequested
+\end_layout
+
+\begin_layout Plain Layout
+
+					@running = false
+\end_layout
+
+\begin_layout Plain Layout
+
+				end
+\end_layout
+
+\begin_layout Plain Layout
+
+				# TODO: Other events
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+			
+\end_layout
+
+\begin_layout Plain Layout
+
+			# TODO: Updating
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This is pretty much the same thing as we've been doing, except I've replaced
+ the parts of the engine that might actually help us with #TODO statements.
+ We'll be filling them in later with actual code.
+\end_layout
+
+\begin_layout Subsubsection
+Lazy Initialization
+\end_layout
+
+\begin_layout Standard
+We set up everything in our initialize() pretty much the same way we did
+ before.
+ The only difference is that we've put the screen creation in an accessor
+ function.
+ Why did we do this, rather than in the initialize() function?
+\end_layout
+
+\begin_layout Standard
+The simple answer is that we don't want to set up the screen until we're
+ ready for it.
+ The initialize function is going to be called early on, but we might want
+ to do other things before we decide what resolution or flags we want.
+ So this way we can create a new instance of the Engine, do whatever other
+ things we need to, and then pass in resolutions all before we use the screen.
+ For example, here's a pretty minimal bit of code that uses the engine:
+\end_layout
+
+\begin_layout Standard
+simple.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'engine'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+def main
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine = Engine.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_width = 1024
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_height = 768
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.run
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if __FILE__ == $0
+\end_layout
+
+\begin_layout Plain Layout
+
+	main()
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Here, we tell our engine to use a different resolution than its default.
+ If we'd set up the screen to be created during Initialize, then we'd have
+ had to pass in things like resolution or flags - after a while we'd end
+ up passing in quite a bit!
+\end_layout
+
+\begin_layout Standard
+Note that we're not actually using the 'screen' variable at all.
+ That's another way that lazy initialization helps out - it allows you to
+ set up pretty complicated defaults.
+ If you don't explicitly do anything with the screen earlier, the first
+ time it's used is at the beginning of the 'run' function, which creates
+ it then.
+\end_layout
+
+\begin_layout Subsubsection
+Sprite Groups
+\end_layout
+
+\begin_layout Standard
+We've got a number of TODO statements up there.
+ Whereas before we had a variable for every object we were keeping track
+ of, this time we'll just keep an array in the engine.
+ That way we can update and draw everything that needs to be updated and
+ drawn all in one spot, and if we wanted to add another sprite the only
+ thing we have to do is add to the array.
+\end_layout
+
+\begin_layout Standard
+First, let's add an array accessor and set it up in the initialize function:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	attr_accessor :components
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize()
+\end_layout
+
+\begin_layout Plain Layout
+
+		Rubygame.init()
+\end_layout
+
+\begin_layout Plain Layout
+
+		@flags = [HWSURFACE, DOUBLEBUF]
+\end_layout
+
+\begin_layout Plain Layout
+
+		@screen_width = 640
+\end_layout
+
+\begin_layout Plain Layout
+
+		@screen_height = 480
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@clock = Clock.new
+\end_layout
+
+\begin_layout Plain Layout
+
+		@clock.enable_tick_events()
+\end_layout
+
+\begin_layout Plain Layout
+
+		target_framerate=30
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@queue = EventQueue.new()
+\end_layout
+
+\begin_layout Plain Layout
+
+		@queue.enable_new_style_events()
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@bgcolor = [ 0, 0, 0 ]
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@components = Sprites::Group.new()
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+That's no array!
+\end_layout
+
+\begin_layout Standard
+Nope - because the idea of putting sprites into an array and then drawing
+ and/or updating them is so common, Rubygame provides specialized arrays
+ called Sprite Groups.
+ They're subclasses of Array, so they can do everything that an ordinary
+ array could, but they also include specialized functions just for sprites.
+\end_layout
+
+\begin_layout Standard
+With that in mind, let's replace some of those TODOs.
+ First, replace the line that says 
+\begin_inset Quotes eld
+\end_inset
+
+# TODO: Drawing
+\begin_inset Quotes erd
+\end_inset
+
+ with:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+@components.draw(screen)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The 'draw' function is one of the things that the Group class gives us.
+ It goes through every sprite in the group and draws it to the surface you
+ supply; in this case the screen.
+\end_layout
+
+\begin_layout Standard
+Updating works similarly, replace the 
+\begin_inset Quotes eld
+\end_inset
+
+TODO: Updating
+\begin_inset Quotes erd
+\end_inset
+
+ with:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+@components.update(delay)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In this case, Group's 
+\begin_inset Quotes eld
+\end_inset
+
+update
+\begin_inset Quotes erd
+\end_inset
+
+ function takes any number of arguments.
+ It then calls the 'update' function of every sprite in the collection and
+ passes whatever arguments you gave.
+ Importantly, the Sprite mixin creates a 'draw' function for you, but it
+ doesn't add in an 'update'.
+ If you're going to use the above functionality, you're going to have to
+ add in an update function of your own.
+ We'll come back to that soon.
+\end_layout
+
+\begin_layout Standard
+So Group provides us with a built-in way to call 'draw' and 'update' on
+ everything, but what if you wanted to call some other function on everything?
+ It's still an array so you could iterate through it like any other, but
+ Group provides us a simpler way.
+ In the previous chapter, we had a 'key' function and dictionary that kept
+ track of the state of the keyboard.
+ Let's re-write our event loop to use something like that:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+			@queue.each do |event|
+\end_layout
+
+\begin_layout Plain Layout
+
+				case(event)
+\end_layout
+
+\begin_layout Plain Layout
+
+				when Events::QuitRequested
+\end_layout
+
+\begin_layout Plain Layout
+
+					@running = false
+\end_layout
+
+\begin_layout Plain Layout
+
+				when Events::QuitRequested
+\end_layout
+
+\begin_layout Plain Layout
+
+					finished = true
+\end_layout
+
+\begin_layout Plain Layout
+
+				when Events::KeyPressed
+\end_layout
+
+\begin_layout Plain Layout
+
+					@components.call(:key, event.key, true)
+\end_layout
+
+\begin_layout Plain Layout
+
+				when Events::KeyReleased
+\end_layout
+
+\begin_layout Plain Layout
+
+					@components.call(:key, event.key, false)
+\end_layout
+
+\begin_layout Plain Layout
+
+				end
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Group::call does the same thing that 'draw' and 'update' does, but on a
+ more general level.
+ It calls whatever function you specify (in this case 'key') and passes
+ in whatever arguments you give it; it does this for every sprite in the
+ group.
+ Like 'update', it doesn't check to see if that function actually exists,
+ so if you use 'call' be sure to define the function you're calling.
+\end_layout
+
+\begin_layout Subsection
+Components
+\end_layout
+
+\begin_layout Standard
+In our previous Pong example, there was some duplicated code.
+ Both the Ball and Paddle class took a filename and created a surface from
+ it, converted it and set its colorkey.
+ As mentioned in the previous section, we also need to define an 'update'
+ and 'key' function in every sprite we use.
+\end_layout
+
+\begin_layout Standard
+We're going to create a base class for every sprite we put on the screen,
+ so that all these functions will be defined.
+ Let's put it at the top of engine.rb:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class Component
+\end_layout
+
+\begin_layout Plain Layout
+
+	include Sprites::Sprite
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(filename)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@filename = filename
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image = Surface.load(filename).convert()
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image.colorkey = [255,0,255]
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect = Rect.new(0,0,@image.w, @image.h)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@keys = {}
+\end_layout
+
+\begin_layout Plain Layout
+
+		super()
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def key(sym, pressed)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@keys[sym] = pressed
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The Sprite mixin gives us the 'draw' function, just like before.
+ We've created an 'update' function that doesn't do anything - this is so
+ our call to Group::update won't error out.
+ All the other code should look familiar - it's the same kind of thing we
+ did in the previous chapter, only now we've put it all in one place.
+ Everything we put on the screen will be a subclass of Component.
+\end_layout
+
+\begin_layout Subsubsection
+The Ship
+\end_layout
+
+\begin_layout Standard
+Let's create our first component, then: The Player's ship
+\end_layout
+
+\begin_layout Standard
+ship.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'engine'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+class Ship < Component
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize
+\end_layout
+
+\begin_layout Plain Layout
+
+		super("ship.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:up]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.top -= delay * 100
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:down]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.top += delay * 100
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:left]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.left -= delay * 100
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:right]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.right += delay * 100
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Here we override the default empty 
+\begin_inset Quotes eld
+\end_inset
+
+update
+\begin_inset Quotes erd
+\end_inset
+
+ function to give the ship the ability to move around in response to keypresses.
+ Because there's ever only going to be one ship and it's always going to
+ look the same, the Ship's initialize function calls its superclass with
+ 'ship.png'.
+ If we had something that behaved like the ship but looked differently,
+ we'd probably keep the 'filename' argument, but in this case we don't need
+ it.
+\end_layout
+
+\begin_layout Subsubsection
+A Basic Skeleton
+\end_layout
+
+\begin_layout Standard
+We've got a lot of framework out of the way, but we haven't actually done
+ anything with it.
+ Let's create a program that actually uses our framework!
+\end_layout
+
+\begin_layout Standard
+asteroids.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'engine'
+\end_layout
+
+\begin_layout Plain Layout
+
+require 'ship'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+def main
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine = Engine.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_width = 1024
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_height = 768
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	ship = Ship.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << ship
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.run
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if __FILE__ == $0
+\end_layout
+
+\begin_layout Plain Layout
+
+	main()
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If you run this, you'll see it's about as impressive as the end of chapter
+ 1, when you could move something around.
+ We've gone through a lot of work and don't have a lot to show off.
+ In fact, if you've ever played asteroids before you've noticed something
+ about the way we move the ship around: It's entirely wrong!
+\end_layout
+
+\begin_layout Standard
+In Asteroids, turning left or right rotate that ship in that direction and
+ pressing forward accelerates.
+ You can only fire directly ahead, so the inability to turn would be a large
+ hindrance.
+ Not to mention that the original game had the ship keep moving even after
+ the player stopped pressing the button.
+ How can we model that?
+\end_layout
+
+\begin_layout Subsubsection
+Let's Get Physical
+\end_layout
+
+\begin_layout Standard
+Science! Specifically, physics.
+ Even more specifically, Newton's First Law: An object in motion tends to
+ remain in motion.
+ In order to model this, we need to keep a variable of how fast (and in
+ what direction) we're traveling.
+ This is actually similar to the Ball class in the previous chapter.
+ In the same way we remembered what to add to its 'x' and 'y', we'll be
+ keeping a 'velocity' array to do the same thing.
+\end_layout
+
+\begin_layout Standard
+But where to keep this functionality? We could add this on to our Component,
+ but remember that Component is our superclass for everything that shows
+ up on screen.
+ This includes things like the score, which doesn't even move at all.
+ It'd be wasted functionality for anything that didn't preserve momentum
+ - or anything that moves but does so in a different way.
+\end_layout
+
+\begin_layout Standard
+Instead, let's make a subclass of Component that handles momentum.
+ Put this between Component and the Engine itself:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class InertialComponent < Component
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :top_speed
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(filename)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super
+\end_layout
+
+\begin_layout Plain Layout
+
+		@top_speed = 100
+\end_layout
+
+\begin_layout Plain Layout
+
+		@velocity = [ 0.0, 0.0 ]
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def accelerate(dx,dy)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@velocity[0] += dx
+\end_layout
+
+\begin_layout Plain Layout
+
+		@velocity[1] += dy
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		# This is the part where we enforce the top speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		speed_squared = @velocity[0] * @velocity[0] +
+\end_layout
+
+\begin_layout Plain Layout
+
+			@velocity[1] * @velocity[1]
+\end_layout
+
+\begin_layout Plain Layout
+
+		if speed_squared > @top_speed * @top_speed
+\end_layout
+
+\begin_layout Plain Layout
+
+			clamp_velocity(speed_squared)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	# If we're going faster than our top speed, change the speed to
+\end_layout
+
+\begin_layout Plain Layout
+
+	# be the top speed
+\end_layout
+
+\begin_layout Plain Layout
+
+	def clamp_velocity(speed_squared)
+\end_layout
+
+\begin_layout Plain Layout
+
+		speed = Math.sqrt(speed_squared)
+\end_layout
+
+\begin_layout Plain Layout
+
+		# Convert our velocity to a unit vector
+\end_layout
+
+\begin_layout Plain Layout
+
+		unit_x = @velocity[0] / speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		unit_y = @velocity[1] / speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		# Now scale it back up to the top speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		@velocity = [unit_x * @top_speed, unit_y * @top_speed]
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.x += @velocity[0] * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.y += @velocity[1] * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Some of this looks familiar - the velocity stuff is similar to the Ball,
+ but we've got a number of other things in there as well.
+ We've put in a top speed and an 
+\begin_inset Quotes eld
+\end_inset
+
+accelerate
+\begin_inset Quotes erd
+\end_inset
+
+ function, and 
+\begin_inset Quotes eld
+\end_inset
+
+clamp_velocity
+\begin_inset Quotes erd
+\end_inset
+
+ makes sure it doesn't go over that max speed.
+ The math involved is quite a bit of vector math, and as it happens Rubygame
+ has a built-in class to handle vector math.
+ If you're curious, Rubygame::Ftor is this class - but note that it's going
+ away in Rubygame 3.0.
+ That's why we're going with the basic operations here.
+\end_layout
+
+\begin_layout Standard
+Let's re-write the Ship class to take advantage of this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class Ship < InertialComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize
+\end_layout
+
+\begin_layout Plain Layout
+
+		super("ship.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+		@top_speed = 400
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:up]
+\end_layout
+
+\begin_layout Plain Layout
+
+			accelerate(0,-1)
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:down]
+\end_layout
+
+\begin_layout Plain Layout
+
+			accelerate(0, 1)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		super
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If you run the program now, tap the 'up' key.
+ The ship will slowly start wandering off the screen.
+ Hold down the 'down' arrow and it'll back up and start moving in the other
+ direction.
+ It'll keep going, even after you let go.
+\end_layout
+
+\begin_layout Standard
+That takes care of the momentum problem, but there's still no way to actually
+ rotate the ship! In order to do that, we'll have to keep track of the ship's
+ angle, rotate the image whenever that angle changes, and make it so that
+ when you accelerate, you accelerate in the direction you're pointing rather
+ than just straight ahead.
+\end_layout
+
+\begin_layout Standard
+This means we're re-writing our ship class, again:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class Ship < InertialComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize
+\end_layout
+
+\begin_layout Plain Layout
+
+		super("ship.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+		@top_speed = 400
+\end_layout
+
+\begin_layout Plain Layout
+
+		@original_image = @image
+\end_layout
+
+\begin_layout Plain Layout
+
+		self.angle = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def angle=(value)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@angle = value
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image = @original_image.rotozoom(@angle, 1.0).convert
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image.colorkey = [255, 0, 255]
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		# Because the image might end up a different size than before,
+\end_layout
+
+\begin_layout Plain Layout
+
+		# we need to change our @rect accordingly
+\end_layout
+
+\begin_layout Plain Layout
+
+		old_center = @rect.center
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.w = @image.w
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.h = @image.h
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.center = old_center
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		radians = @angle * Math::PI / 180
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:up]
+\end_layout
+
+\begin_layout Plain Layout
+
+			accelerate(Math.cos(radians) * 5,-Math.sin(radians) * 5)
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:down]
+\end_layout
+
+\begin_layout Plain Layout
+
+			accelerate(-Math.cos(radians) * 5,Math.sin(radians) * 5)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:left]
+\end_layout
+
+\begin_layout Plain Layout
+
+			self.angle = @angle + 90 * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:right]
+\end_layout
+
+\begin_layout Plain Layout
+
+			self.angle = @angle - 90 * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		super
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Rotozoom
+\end_layout
+
+\begin_layout Standard
+Surface's 
+\begin_inset Quotes eld
+\end_inset
+
+rotozoom
+\begin_inset Quotes erd
+\end_inset
+
+ functionality does exactly what it sounds like: It gives you an image that's
+ rotated and/or zoomed by the amounts you give it.
+ Because this isn't necessarily a lossless operation, we rotate the original
+ image rather than continually rotating ones that have already been rotated.
+ We aren't interested in scaling our sprite at all, so we just pass in '1'
+ as our zoom factor.
+ The rotozoom function might return a surface that's a different size than
+ the original surface (because otherwise the rotated image wouldn't fit),
+ so we need to change our @rect information.
+ Because the new image is a different size but the ship itself is still
+ in the middle of the image, we need to re-center it to prevent it from
+ appearing off-center as it was rotated.
+\end_layout
+
+\begin_layout Subsubsection
+Trigonometry
+\end_layout
+
+\begin_layout Standard
+This is the kind of vector math that we're doing ourselves in this book.
+ When the ship was just facing up, it was easy to know what to add to its
+ 
+\begin_inset Quotes eld
+\end_inset
+
+y
+\begin_inset Quotes erd
+\end_inset
+
+ position and 
+\begin_inset Quotes eld
+\end_inset
+
+x
+\begin_inset Quotes erd
+\end_inset
+
+ position when the player accelerates.
+ When the ship's at a 14 degree angle, on the other hand, it's a bit more
+ difficult.
+ Essentially, we accelerate the ship by the portion of its angle that applies
+ to X, and the portion that applies to Y.
+ As shown above, you can get those numbers by the cosine of the angle and
+ the sine of the angle.
+ We negate the 'y' portion because the screen's 
+\begin_inset Quotes eld
+\end_inset
+
+y
+\begin_inset Quotes erd
+\end_inset
+
+ increases as you go from top to bottom, which is the opposite of ordinary
+ math.
+\end_layout
+
+\begin_layout Standard
+If you run the game at this point, you now have a ship that's functional!
+ Of course, it's missing a little something from the title - the asteroids!
+\end_layout
+
+\begin_layout Subsection
+Asteroids
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
 \begin_layout Section
 \start_of_appendix
 Key Symbol Cheatsheet
@@ -5093,6 +6974,187 @@ Rubygame.quit()
 
 \begin_layout Section
 Full Code Listings
+\end_layout
+
+\begin_layout Section
+License
+\end_layout
+
+\begin_layout Subsection
+Code
+\end_layout
+
+\begin_layout Standard
+A book full of code isn't of much use if you can't actually use any of the
+ code! So in the spirit of letting you get the most out of the examples,
+ I'm using the MIT License for the code:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+Copyright (c) 2011 Roger Ostrander
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Permission is hereby granted, free of charge, to any person obtaining a
+ copy
+\end_layout
+
+\begin_layout Plain Layout
+
+of this software and associated documentation files (the "Software"), to
+ deal
+\end_layout
+
+\begin_layout Plain Layout
+
+in the Software without restriction, including without limitation the rights
+\end_layout
+
+\begin_layout Plain Layout
+
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+\end_layout
+
+\begin_layout Plain Layout
+
+copies of the Software, and to permit persons to whom the Software is
+\end_layout
+
+\begin_layout Plain Layout
+
+furnished to do so, subject to the following conditions:
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+The above copyright notice and this permission notice shall be included
+ in
+\end_layout
+
+\begin_layout Plain Layout
+
+all copies or substantial portions of the Software.
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ OR
+\end_layout
+
+\begin_layout Plain Layout
+
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+\end_layout
+
+\begin_layout Plain Layout
+
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT SHALL THE
+\end_layout
+
+\begin_layout Plain Layout
+
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+\end_layout
+
+\begin_layout Plain Layout
+
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM,
+\end_layout
+
+\begin_layout Plain Layout
+
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+\end_layout
+
+\begin_layout Plain Layout
+
+THE SOFTWARE.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Text (and some assets)
+\end_layout
+
+\begin_layout Standard
+All the text in this book is licensed under the Creative Commons Attribution
+ license.
+ Any of the image assets that I personally created are also available under
+ this same license.
+ License text is available at 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+http://creativecommons.org/licenses/by/3.0/
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Things I Didn't Make
+\end_layout
+
+\begin_layout Subsubsection
+ttf-bitstream-vera-1.10
+\end_layout
+
+\begin_layout Standard
+The Bitstream Vera font is from the people who made GNOME, and they've made
+ it available under a fairly permissive license.
+ Consult the COPYRIGHT.TXT file included in the directory for usage details.
+\end_layout
+
+\begin_layout Subsubsection
+rubygame.png
+\end_layout
+
+\begin_layout Standard
+This is the Rubygame logo, and it comes with the Rubygame distribution.
+ It (as well as a few other sample images that come with the distribution)
+ are licensed under the Creative Commons Attribution-ShareAlike 2.5 License,
+ viewable at 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+http://creativecommons.org/licenses/by-sa/2.5/ 
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_body
