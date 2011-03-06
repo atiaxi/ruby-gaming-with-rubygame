@@ -2,6 +2,23 @@ require 'rubygame'
 
 include Rubygame
 
+class BareComponent
+	include Sprites::Sprite
+	
+	def initialize
+		super
+	end
+	
+	def key(sym,pressed)
+	end
+	
+	def draw(screen)
+	end
+	
+	def update(delay)
+	end
+end
+
 class Component
 	include Sprites::Sprite
 	
@@ -27,6 +44,7 @@ end
 class InertialComponent < Component
 	
 	attr_accessor :top_speed
+	attr_reader :velocity
 	
 	def initialize(filename)
 		super

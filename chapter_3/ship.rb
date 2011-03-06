@@ -2,11 +2,17 @@ require 'engine'
 
 class Ship < InertialComponent
 
-	def initialize
+	attr_accessor :shots
+	attr_reader :angle
+
+	def initialize(engine)
 		super("ship.png")
 		@top_speed = 400
 		@original_image = @image
 		self.angle = 0
+		@engine = engine
+		@cooldown = 0
+		@shots = []
 	end
 	
 	def angle=(value)
@@ -36,6 +42,46 @@ class Ship < InertialComponent
 		elsif @keys[:right]
 			self.angle = @angle - 90 * delay
 		end
+		
+		@cooldown -= delay if @cooldown > 0
+		if @keys[:space] && @cooldown <= 0
+			@cooldown = 1.0
+			shot = Projectile.new(@engine,self)
+			shot.rect.centerx = @rect.centerx
+			shot.rect.centery = @rect.centery
+			@engine.components << shot
+			@shots << shot
+		end
 		super
 	end
+end
+
+class Projectile < InertialComponent
+	attr_reader :ship
+
+	def initialize(engine, ship)
+		super("projectile.png")
+		@speed = 500
+		@angle = ship.angle
+		@life = 2
+		@engine = engine
+		setup_direction
+		@ship = ship
+	end
+	
+	def setup_direction
+		angle = @angle * Math::PI / 180
+		@velocity[0] = Math.cos(angle) * @speed
+		@velocity[1] = -Math.sin(angle) * @speed
+	end
+	
+	def update(delay)
+		super(delay)
+		@life -= delay
+		if(@life < 0)
+			@engine.components.delete(self)
+			@ship.shots.delete(self)
+		end
+	end
+	
 end

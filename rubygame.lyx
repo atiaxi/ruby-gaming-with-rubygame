@@ -5665,12 +5665,17 @@ class Ship < Component
 
 \begin_layout Plain Layout
 
-	def initialize
+	def initialize(engine)
 \end_layout
 
 \begin_layout Plain Layout
 
 		super("ship.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine = engine
 \end_layout
 
 \begin_layout Plain Layout
@@ -5854,7 +5859,7 @@ def main
 
 \begin_layout Plain Layout
 
-	ship = Ship.new
+	ship = Ship.new(engine)
 \end_layout
 
 \begin_layout Plain Layout
@@ -5966,6 +5971,11 @@ class InertialComponent < Component
 \begin_layout Plain Layout
 
 	attr_accessor :top_speed
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_reader :velocity
 \end_layout
 
 \begin_layout Plain Layout
@@ -6195,7 +6205,7 @@ class Ship < InertialComponent
 
 \begin_layout Plain Layout
 
-	def initialize
+	def initialize(engine)
 \end_layout
 
 \begin_layout Plain Layout
@@ -6206,6 +6216,11 @@ class Ship < InertialComponent
 \begin_layout Plain Layout
 
 		@top_speed = 400
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine = engine
 \end_layout
 
 \begin_layout Plain Layout
@@ -6313,7 +6328,7 @@ class Ship < InertialComponent
 
 \begin_layout Plain Layout
 
-	def initialize
+	def initialize(engine)
 \end_layout
 
 \begin_layout Plain Layout
@@ -6334,6 +6349,11 @@ class Ship < InertialComponent
 \begin_layout Plain Layout
 
 		self.angle = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine = engine
 \end_layout
 
 \begin_layout Plain Layout
@@ -6576,11 +6596,2160 @@ If you run the game at this point, you now have a ship that's functional!
 \end_layout
 
 \begin_layout Subsection
-Asteroids
+Asteroids and Projectiles
 \end_layout
 
 \begin_layout Standard
+Like the ball in the Pong chapter, the Asteroids will be acting on their
+ own.
+ They'll just be moving and not doing anything terribly interesting while
+ doing so:
+\end_layout
 
+\begin_layout Standard
+asteroid.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'engine'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+class Asteroid < InertialComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(angle = nil)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super("asteroid.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+		@speed = 100
+\end_layout
+
+\begin_layout Plain Layout
+
+		@angle = angle
+\end_layout
+
+\begin_layout Plain Layout
+
+		setup_direction
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def setup_direction
+\end_layout
+
+\begin_layout Plain Layout
+
+		@angle ||= rand(360)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ange = @angle * Math::PI / 180
+\end_layout
+
+\begin_layout Plain Layout
+
+		@velocity[0] = Math.cos(angle) * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		@velocity[1] = -Math.sin(angle) * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This should look pretty familiar - we're setting up everything the way it
+ was done in the ship, only instead of allowing for multiple angles, we're
+ just picking one at random and going in that direction.
+ Note that we're only picking one at random if we didn't pass one in - we'll
+ be creating asteroids with specific angles later on.
+\end_layout
+
+\begin_layout Subsubsection
+No, 'Asteroids', plural!
+\end_layout
+
+\begin_layout Standard
+Right, the game wasn't called 
+\begin_inset Quotes eld
+\end_inset
+
+Asteroid
+\begin_inset Quotes erd
+\end_inset
+
+, after all.
+ We need a way to make more than one of these.
+ Not to mention, when they do appear, they need to appear from off-screen.
+ The game would be far more difficult if an asteroid could simply appear
+ out of nowhere at any point!
+\end_layout
+
+\begin_layout Standard
+We could put all the logic to do this in our main asteroids.rb file, but
+ what do we do later, when we want to spawn another asteroid? We need to
+ make whatever manages the asteroids its own object, so that we can put
+ all this code in one place and call it repeatedly.
+\end_layout
+
+\begin_layout Standard
+I've created a class just for this purpose:
+\end_layout
+
+\begin_layout Standard
+asteroid.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class AsteroidBelt
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_reader :asteroids
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine = engine
+\end_layout
+
+\begin_layout Plain Layout
+
+		@asteroids = []
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def spawn
+\end_layout
+
+\begin_layout Plain Layout
+
+		asteroid = Asteroid.new()
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen = @engine.screen
+\end_layout
+
+\begin_layout Plain Layout
+
+		x = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		y = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(asteroid.velocity[0] < 0)
+\end_layout
+
+\begin_layout Plain Layout
+
+			x = @engine.screen.width + asteroid.rect.w
+\end_layout
+
+\begin_layout Plain Layout
+
+		else
+\end_layout
+
+\begin_layout Plain Layout
+
+			x = - asteroid.rect.w
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(asteroid.velocity[1] < 0)
+\end_layout
+
+\begin_layout Plain Layout
+
+			y = @engine.screen.height + asteroid.rect.h
+\end_layout
+
+\begin_layout Plain Layout
+
+		else
+\end_layout
+
+\begin_layout Plain Layout
+
+			y = - asteroid.rect.h
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		asteroid.rect.x = x
+\end_layout
+
+\begin_layout Plain Layout
+
+		asteroid.rect.y = y
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine.components << asteroid
+\end_layout
+
+\begin_layout Plain Layout
+
+		@asteroids << asteroid
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let's put this all together and get some asteroids on the field, shall we?
+ Change the main asteroids.rb to look like this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'engine'
+\end_layout
+
+\begin_layout Plain Layout
+
+require 'ship'
+\end_layout
+
+\begin_layout Plain Layout
+
+require 'asteroid'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+def main
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine = Engine.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_width = 1024
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_height = 768
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	ship = Ship.new(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << ship
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	belt = AsteroidBelt.new(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+	belt.spawn
+\end_layout
+
+\begin_layout Plain Layout
+
+	belt.spawn
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.run
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if __FILE__ == $0
+\end_layout
+
+\begin_layout Plain Layout
+
+	main()
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If you run this, you'll see your ship (as before) and two asteroids, milling
+ about.
+ There are some problems, though:
+\end_layout
+
+\begin_layout Itemize
+Once the asteroids go off the screen, they're gone for good,
+\end_layout
+
+\begin_layout Itemize
+Once your ship goes off the screen, it's hard to get it back on,
+\end_layout
+
+\begin_layout Itemize
+Your ship is immune to asteroids, and
+\end_layout
+
+\begin_layout Itemize
+You can't shoot them
+\end_layout
+
+\begin_layout Standard
+We're going to tackle that last point first:
+\end_layout
+
+\begin_layout Subsubsection
+Projectiles
+\end_layout
+
+\begin_layout Standard
+These are a lot like the asteroids, actually, except for two things:
+\end_layout
+
+\begin_layout Itemize
+Unlike asteroids, they won't live forever, and
+\end_layout
+
+\begin_layout Itemize
+Instead of having a random angle, they inherit it from the ship
+\end_layout
+
+\begin_layout Standard
+Here's what they look like in action:
+\end_layout
+
+\begin_layout Standard
+ship.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class Projectile < InertialComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_reader :ship
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(engine, ship)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super("projectile.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+		@speed = 500
+\end_layout
+
+\begin_layout Plain Layout
+
+		@angle = ship.angle
+\end_layout
+
+\begin_layout Plain Layout
+
+		@life = 2
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine = engine
+\end_layout
+
+\begin_layout Plain Layout
+
+		setup_direction
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def setup_direction
+\end_layout
+
+\begin_layout Plain Layout
+
+		angle = @angle * Math::PI / 180
+\end_layout
+
+\begin_layout Plain Layout
+
+		@velocity[0] = Math.cos(angle) * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		@velocity[1] = -Math.sin(angle) * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@life -= delay
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(@life < 0)
+\end_layout
+
+\begin_layout Plain Layout
+
+			@engine.components.delete(self)
+\end_layout
+
+\begin_layout Plain Layout
+
+			@ship.shots.delete(self)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As you can see, the similarities are pretty striking.
+ If I wasn't trying to keep the code-wall-of-text factor to a minimum, I'd
+ refactor out the common functionality between Asteroid and Projectile into
+ its own class, and have those two inherit from it.
+ For now, though, this will work fine.
+\end_layout
+
+\begin_layout Standard
+You can see from the code where the first of our two differences from asteroids
+ are - the @life variable controls how many seconds the projectile remains
+ on screen.
+ As far as the second, that comes in with the 'initialize' function; note
+ that the angle is no longer optional.
+\end_layout
+
+\begin_layout Standard
+That only leaves the other half - getting the ship to actually create and
+ fire these things! Change the Ship's initialize to look like this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	attr_accessor :shots
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_reader :angle
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super("ship.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+		@top_speed = 400
+\end_layout
+
+\begin_layout Plain Layout
+
+		@original_image = @image
+\end_layout
+
+\begin_layout Plain Layout
+
+		self.angle = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine = engine
+\end_layout
+
+\begin_layout Plain Layout
+
+		@cooldown = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		@shots = []
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And add this to the bottom of the ship's 
+\begin_inset Quotes eld
+\end_inset
+
+update
+\begin_inset Quotes erd
+\end_inset
+
+ function:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+		@cooldown -= delay if @cooldown > 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:space] && @cooldown <= 0
+\end_layout
+
+\begin_layout Plain Layout
+
+			@cooldown = 1.0
+\end_layout
+
+\begin_layout Plain Layout
+
+			shot = Projectile.new(@engine,self)
+\end_layout
+
+\begin_layout Plain Layout
+
+			shot.rect.centerx = @rect.centerx
+\end_layout
+
+\begin_layout Plain Layout
+
+			shot.rect.centery = @rect.centery
+\end_layout
+
+\begin_layout Plain Layout
+
+			@engine.components << shot
+\end_layout
+
+\begin_layout Plain Layout
+
+			@shots << shot
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The first thing we do is establish a 'cooldown' variable that keeps track
+ of how long it'll be until the next time we can shoot something.
+ This is mainly to prevent the player from flooding the area with projectiles.
+ If the cooldown is 0 and they're pressing the 'space' button, we re-set
+ the cooldown and create a new projectile.
+\end_layout
+
+\begin_layout Standard
+If you try this out, it's not immediately obvious that the projectiles are
+ dying after two seconds.
+ At 500 pixels per second and living for two seconds, they'll have covered
+ 1000 pixels, which is almost the entire width of the screen.
+ To see the countdown in action, aim the ship at the lower-right of the
+ screen and shoot.
+ You should be able to see them expire.
+\end_layout
+
+\begin_layout Subsection
+Blowing stuff up
+\end_layout
+
+\begin_layout Standard
+Of course, right now shooting at the asteroids does absolutely nothing and,
+ much to their frustration, your ship remains cheerfully immune.
+ Let's change all that.
+\end_layout
+
+\begin_layout Standard
+In the Pong chapter, we discussed a few methods of managing collision detection.
+ This time around, we're going to create a class whose entire purpose is
+ watching for collisions and dealing with them:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class CollisionWatcher
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(engine,ship,belt)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine = engine
+\end_layout
+
+\begin_layout Plain Layout
+
+		@ship = ship
+\end_layout
+
+\begin_layout Plain Layout
+
+		@belt = belt
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		shots = @ship.shots.dup
+\end_layout
+
+\begin_layout Plain Layout
+
+		@belt.asteroids.dup.each do |rock|
+\end_layout
+
+\begin_layout Plain Layout
+
+			if rock.rect.collide_rect?(@ship.rect)
+\end_layout
+
+\begin_layout Plain Layout
+
+				game_over
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+			shots.each do |shot|
+\end_layout
+
+\begin_layout Plain Layout
+
+				if shot.rect.collide_rect?(rock.rect)
+\end_layout
+
+\begin_layout Plain Layout
+
+					kill_both(rock,shot)
+\end_layout
+
+\begin_layout Plain Layout
+
+				end
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def game_over
+\end_layout
+
+\begin_layout Plain Layout
+
+		raise "Game Over!"
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def kill_both(rock, shot)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine.components.delete(rock)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine.components.delete(shot)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@ship.shots.delete(shot)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@belt.asteroids.delete(rock)
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Oh, raise 
+\begin_inset Quotes eld
+\end_inset
+
+Game Over!
+\begin_inset Quotes erd
+\end_inset
+
+, you're such great placeholder code.
+\end_layout
+
+\begin_layout Subsubsection
+Duplication
+\end_layout
+
+\begin_layout Standard
+Rather than go through the shots and asteroids arrays as they are, you may
+ have noticed that we duplicate the arrays and go through that duplicate.
+ The reason we're doing this is that it's likely our code will modify the
+ original arrays.
+ The kill_both function, specifically, changes both of our arrays.
+ It's important to always iterate over arrays that aren't going to change
+ because if they do it's possible you'll end up iterating over some parts
+ more than once or not at all.
+ And that's the best case scenario!
+\end_layout
+
+\begin_layout Subsubsection
+Continually Updated
+\end_layout
+
+\begin_layout Standard
+The CollisionWatcher would work great if not for one small problem: That
+ update(delay) function needs to be called every frame, and right now there's
+ not a good way to do that.
+ You could go back to the Engine class and hack it in, but that'd be creating
+ a rather special case just for this once class - we'd like to keep the
+ Engine generic (later we'll have another class use this continual updating,
+ so we want something reusable).
+\end_layout
+
+\begin_layout Standard
+If it weren't for the fact that it was built almost entirely just to draw
+ things, the Component class would be ideal - the engine already knows how
+ to add and remove them, and to update them each frame.
+ But, as mentioned, that class is made explicitly to draw.
+\end_layout
+
+\begin_layout Standard
+So let's make one that isn't:
+\end_layout
+
+\begin_layout Standard
+engine.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class BareComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+	include Sprites::Sprite
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize
+\end_layout
+
+\begin_layout Plain Layout
+
+		super
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def key(sym,pressed)
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def draw(screen)
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Note that this class, despite its name, is entirely unrelated to the Component
+ class - it doesn't inherit at all.
+ Despite that fact, this will work - the main game loop only ever calls
+ 'key', 'draw', and 'update'.
+ This is an example of 
+\begin_inset Quotes eld
+\end_inset
+
+duck typing
+\begin_inset Quotes erd
+\end_inset
+
+ - the BareComponent looks like a Component, it quacks like a Component,
+ so as far as the Engine can tell, it's not any different.
+ Duck typing is a very powerful tool, but also somewhat dangerous.
+ If we add something to the regular Component class that the game loop depends
+ on and forget to add it to classes that are pretending to be Components,
+ we'll get an error.
+\end_layout
+
+\begin_layout Standard
+This class is an ideal base class for our CollisionWatcher - it'll allow
+ the watcher to be updated every frame, but we don't have to worry about
+ drawing it because the BareComponent simply stubs that out.
+ Let's change our CollisionWatcher accordingly:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class CollisionWatcher < BareComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(engine,ship,belt)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine = engine
+\end_layout
+
+\begin_layout Plain Layout
+
+		@ship = ship
+\end_layout
+
+\begin_layout Plain Layout
+
+		@belt = belt
+\end_layout
+
+\begin_layout Plain Layout
+
+		super()
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+That's literally the only change we need to make to the watcher.
+ Now let's add it to our main asteroids.rb file:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+def main
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine = Engine.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_width = 1024
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_height = 768
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	ship = Ship.new(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << ship
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	belt = AsteroidBelt.new(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+	belt.spawn
+\end_layout
+
+\begin_layout Plain Layout
+
+	belt.spawn
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	watcher = CollisionWatcher.new(engine,ship,belt)
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << watcher
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.run
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now if you run the game, you'll be able to shoot and kill asteroids, as
+ well as be killed by asteroids.
+ In fact, that second part may lead to:
+\end_layout
+
+\begin_layout Subsubsection
+I'm dying before I can even play!
+\end_layout
+
+\begin_layout Standard
+If you start the game and die immediately, it's because one of the four
+ spawn points for the asteroids is in the upper-left part of the screen,
+ right next to where the ship starts out.
+ So you last only a few frames at best before the asteroid hits the ship.
+ This is an easy fix, just change the ship setup in asteroids.rb to:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	ship = Ship.new(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+	ship.rect.centerx = engine.screen_width / 2
+\end_layout
+
+\begin_layout Plain Layout
+
+	ship.rect.centery = engine.screen_height / 2
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << ship
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now you start right in the middle.
+\end_layout
+
+\begin_layout Subsection
+Making it Last
+\end_layout
+
+\begin_layout Standard
+We made a list of problems earlier, and then we took care of a few.
+ There are some left, however:
+\end_layout
+
+\begin_layout Itemize
+Once the asteroids go off the screen, they're gone for good, and
+\end_layout
+
+\begin_layout Itemize
+Once your ship goes off the screen, it's hard to get it back on.
+\end_layout
+
+\begin_layout Standard
+In the original Asteroids, once something went off the screen, it wrapped
+ around to the other side.
+ Wouldn't it be nice if our game had that feature? Well, the upshot to being
+ the person making the game is that it can have any feature you want it
+ to have:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class WraparoundWatcher < BareComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine = engine
+\end_layout
+
+\begin_layout Plain Layout
+
+		super()
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine.components.each do |item|
+\end_layout
+
+\begin_layout Plain Layout
+
+			if item.rect
+\end_layout
+
+\begin_layout Plain Layout
+
+				if item.rect.right < 0
+\end_layout
+
+\begin_layout Plain Layout
+
+					item.rect.left = @engine.screen.w
+\end_layout
+
+\begin_layout Plain Layout
+
+				elsif item.rect.left > @engine.screen.w
+\end_layout
+
+\begin_layout Plain Layout
+
+					item.rect.right = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+				end
+\end_layout
+
+\begin_layout Plain Layout
+
+				
+\end_layout
+
+\begin_layout Plain Layout
+
+				if item.rect.bottom < 0
+\end_layout
+
+\begin_layout Plain Layout
+
+					item.rect.top = @engine.screen.h
+\end_layout
+
+\begin_layout Plain Layout
+
+				elsif item.rect.top > @engine.screen.h
+\end_layout
+
+\begin_layout Plain Layout
+
+					item.rect.bottom = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+				end
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Similar to the CollisionWatcher but even more simple - rather than take
+ in a list of the various things we want to watch, we just take in the engine.
+ Everything that gets drawn should be wrapped around, after all.
+\end_layout
+
+\begin_layout Subsubsection
+More Ducks
+\end_layout
+
+\begin_layout Standard
+Note that, before we check the component's rect to see if we should move
+ it to the other side of the screen, we check to see if it has a rect.
+ You might wonder why that is - after all, everything has a rect, right?
+ Well, everything that gets 
+\emph on
+drawn 
+\emph default
+has a rect.
+\end_layout
+
+\begin_layout Standard
+Remember that we have two components that don't have rects, and you just
+ wrote one of them! (The CollisionWatcher is the other one).
+ This is an instance of the need to be careful when Duck Typing.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+Integration
+\end_layout
+
+\begin_layout Standard
+Let's put this new watcher in our main function:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+def main
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine = Engine.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_width = 1024
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_height = 768
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	ship = Ship.new(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+	ship.rect.centerx = engine.screen_width / 2
+\end_layout
+
+\begin_layout Plain Layout
+
+	ship.rect.centery = engine.screen_height / 2
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << ship
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	belt = AsteroidBelt.new(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+	belt.spawn
+\end_layout
+
+\begin_layout Plain Layout
+
+	belt.spawn
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	watcher = CollisionWatcher.new(engine,ship,belt)
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << watcher
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	wrap = WraparoundWatcher.new(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << wrap
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.run
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This is getting larger, but it's taking much longer to do so than our Pong
+ example did.
+ That's one of the benefits of having an engine in place, a great deal of
+ code can be factored out into it.
+\end_layout
+
+\begin_layout Standard
+If you play this now, you'll be able to fly off the screen and back around
+ the other side.
+ So will your projectiles (it'll be pretty easy to see them vanish after
+ two seconds now) and asteroids.
+\end_layout
+
+\begin_layout Subsection
+I won, I think.
+\end_layout
+
+\begin_layout Standard
+After you've shot the two asteroids, there's not a whole lot else to do.
+ You just float around in space and not much else.
+ We could end the game here, do a raise 
+\begin_inset Quotes eld
+\end_inset
+
+you won
+\begin_inset Quotes erd
+\end_inset
+
+ and call it a day, or we could keep throwing asteroids at the player!
+\end_layout
+
+\begin_layout Standard
+We've already got the AsteroidBelt class that handles spawning new asteroids
+ in - let's have it do this automatically.
+ Add an update(delay) function to the AsteroidBelt class that looks like
+ this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		while @asteroids.size < 5
+\end_layout
+
+\begin_layout Plain Layout
+
+			spawn
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+That'll make sure there are at least 5 asteroids on the screen at all times.
+ Or it would, if that 'delay' function were being called at all.
+ But wait, we just wrote something to do exactly that! Change the beginning
+ of AsteroidBelt to the following:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class AsteroidBelt < BareComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :asteroids
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine = engine
+\end_layout
+
+\begin_layout Plain Layout
+
+		@asteroids = []
+\end_layout
+
+\begin_layout Plain Layout
+
+		super()
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Of course, this still doesn't work because we haven't added the asteroid
+ belt to our engine.
+ Go back to the main() function in asteroids.rb and change belt's setup to:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	belt = AsteroidBelt.new(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << belt
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+You can remove the the two calls to spawn() that were there; now that the
+ belt's update is being called every frame, you don't need it.
+\end_layout
+
+\begin_layout Subsubsection
+A Proper Game Over
+\end_layout
+
+\begin_layout Standard
+Okay, so now you can't win.
+ But you can lose in style, right? Let's get rid of that raise 
+\begin_inset Quotes eld
+\end_inset
+
+Game Over
+\begin_inset Quotes erd
+\end_inset
+
+ and replace it with something visual.
+ Go to the CollisionWatcher and change its game_over() function to look
+ like this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def game_over
+\end_layout
+
+\begin_layout Plain Layout
+
+		over = Component.new("gameover.png")
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine.components << over
+\end_layout
+
+\begin_layout Plain Layout
+
+		over.rect.centerx = @engine.screen.w / 2
+\end_layout
+
+\begin_layout Plain Layout
+
+		over.rect.centery = @engine.screen.h / 2
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine.components.delete(@ship)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@ship.rect = nil
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+There's just one problem with this code.
+ Earlier, in the update() function, we check to see if the ship's colliding...
+ and we keep doing this even if it's dead! Not to mention we seemed to have
+ recklessly changed the ship's rectangle to nil, even though that's almost
+ certainly going to cause it to crash.
+\end_layout
+
+\begin_layout Standard
+I'm doing that in order to prevent us from adding more code to the Ship
+ class.
+ The normal way to do something like this would be to have an 'alive' accessor
+ inside Ship that reflects whether it's alive or not.
+ Since I'm trying to keep the walls of code to a minimum, I'm going to use
+ the ship's rectangle as this indicator.
+ We just need to change CollisionWatcher's update() to not crash on it:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		shots = @ship.shots.dup
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(@ship.rect)
+\end_layout
+
+\begin_layout Plain Layout
+
+			@belt.asteroids.dup.each do |rock|
+\end_layout
+
+\begin_layout Plain Layout
+
+				if rock.rect.collide_rect?(@ship.rect)
+\end_layout
+
+\begin_layout Plain Layout
+
+					game_over
+\end_layout
+
+\begin_layout Plain Layout
+
+					return unless @ship.rect
+\end_layout
+
+\begin_layout Plain Layout
+
+				end
+\end_layout
+
+\begin_layout Plain Layout
+
+				shots.each do |shot|
+\end_layout
+
+\begin_layout Plain Layout
+
+					if shot.rect.collide_rect?(rock.rect)
+\end_layout
+
+\begin_layout Plain Layout
+
+						kill_both(rock,shot)
+\end_layout
+
+\begin_layout Plain Layout
+
+					end
+\end_layout
+
+\begin_layout Plain Layout
+
+				end
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Note that we're checking the rectangle twice - once before the loop so we
+ can save some time, and once inside the rocks/ship collision loop.
+ The latter is because the rect gets changed to null the instant it hits
+ a rock, and it'll crash on the next iteration of the loop unless we exit
+ before then.
+\end_layout
+
+\begin_layout Subsection
+Wrapup
+\end_layout
+
+\begin_layout Standard
+Another game complete! This time you:
+\end_layout
+
+\begin_layout Itemize
+Put a lot of otherwise duplicated code into a game engine
+\end_layout
+
+\begin_layout Itemize
+Created a hierarchy of sprites to do away with even more duplicate code
+\end_layout
+
+\begin_layout Itemize
+Used the terrifying power of math and vectors
+\end_layout
+
+\begin_layout Itemize
+Got away with Duck Typing.
+\end_layout
+
+\begin_layout Subsubsection
+Excercises
+\end_layout
+
+\begin_layout Standard
+If you'd like to play around some more with this game, here are some things
+ you can do:
+\end_layout
+
+\begin_layout Description
+Keep
+\begin_inset space ~
+\end_inset
+
+Score Award points for destroying asteroids and display those points at
+ the top of the screen.
+ You can probably rip off Pong's scoreboard pretty easily.
+\end_layout
+
+\begin_layout Description
+Shielding Some versions of Asteroids have a shield the player can activate,
+ that makes them temporarily invincible.
+ Use the @life and @cooldown features as examples of how to start with this.
+\end_layout
+
+\begin_layout Description
+Fragments When you explode an asteroid, it should blow up into other, smaller
+ asteroids! Either use a smaller asteroid image or shrink it yourself with
+ rotozoom.
+ Make sure you remove them entirely once they get small enough, or you're
+ going to have a very interesting problem on your hands.
+\end_layout
+
+\begin_layout Description
+Multiple
+\begin_inset space ~
+\end_inset
+
+Lives Instead of losing the instant you touch an asteroid, have the player
+ lose a life and put them back in the middle.
+ Use what you did in 'shielding' to make sure they don't explode if there's
+ already an asteroid there.
+ Use what you did in 'keep score' to show how many lives the player has
+ left.
+\end_layout
+
+\begin_layout Section
+Shoot-em-up (Now with Sound!)
 \end_layout
 
 \begin_layout Section
