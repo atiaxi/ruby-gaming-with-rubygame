@@ -5915,8 +5915,8 @@ If you run this, you'll see it's about as impressive as the end of chapter
 \end_layout
 
 \begin_layout Standard
-In Asteroids, turning left or right rotate that ship in that direction and
- pressing forward accelerates.
+In Asteroids, turning left or right rotates that ship in that direction
+ and pressing forward accelerates.
  You can only fire directly ahead, so the inability to turn would be a large
  hindrance.
  Not to mention that the original game had the ship keep moving even after
@@ -8408,7 +8408,7 @@ status open
 
 \begin_layout Standard
 That'll make sure there are at least 5 asteroids on the screen at all times.
- Or it would, if that 'delay' function were being called at all.
+ Or it would, if that 'update' function were being called at all.
  But wait, we just wrote something to do exactly that! Change the beginning
  of AsteroidBelt to the following:
 \end_layout
@@ -8750,6 +8750,1100 @@ Lives Instead of losing the instant you touch an asteroid, have the player
 
 \begin_layout Section
 Shoot-em-up (Now with Sound!)
+\end_layout
+
+\begin_layout Standard
+This project's going to be very similar to the last one - you'll even be
+ using the engine you designed in the previous chapter.
+ We'll be adding features to it to handle the audio portion of games, however.
+\end_layout
+
+\begin_layout Subsection
+Setting Up
+\end_layout
+
+\begin_layout Standard
+Whenever I'm starting up a new project, the first thing I like to do is
+ to get a bare-minimum program written.
+ Usually this does nothing but put the window on the screen, but it's somewhere
+ to start from:
+\end_layout
+
+\begin_layout Standard
+shoot-em.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'engine'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+def main
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine = Engine.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_width = 1024
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_height = 768
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.run
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if __FILE__ == $0
+\end_layout
+
+\begin_layout Plain Layout
+
+	main()
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If you're like me, you've been organizing these files in separate directories
+ for each chapter.
+ If that's the case, remember to copy engine.rb over from chapter 3, as the
+ code above depends on it.
+\end_layout
+
+\begin_layout Standard
+Running this is pretty much exactly what you'd expect: A big blank screen.
+ It's not exciting but it's beneficial to write the bare-bones portion first
+ for a few reasons:
+\end_layout
+
+\begin_layout Subsubsection
+Why?
+\end_layout
+
+\begin_layout Description
+You
+\begin_inset space ~
+\end_inset
+
+know
+\begin_inset space ~
+\end_inset
+
+everything's
+\begin_inset space ~
+\end_inset
+
+working: In an entirely new project there's often setup that needs to be
+ done beforehand - if this is a new computer, you'll need to install Rubygame,
+ for instance.
+ Making a simple program ensures that everything was set up correctly.
+ A complex program would also do this, but it'd take you a lot longer to
+ write just to know if things worked.
+\end_layout
+
+\begin_layout Description
+You
+\begin_inset space ~
+\end_inset
+
+have
+\begin_inset space ~
+\end_inset
+
+a
+\begin_inset space ~
+\end_inset
+
+starting
+\begin_inset space ~
+\end_inset
+
+point: In programming, as in writing, sometimes a large blank page can be
+ intimidating.
+ This way you've got a simple starting point.
+ If you've written an engine like we have, you've got more than that - you
+ have a point where you know you need to go next.
+ In our case, it's adding items to the engine.
+\end_layout
+
+\begin_layout Description
+You
+\begin_inset space ~
+\end_inset
+
+can
+\begin_inset space ~
+\end_inset
+
+develop
+\begin_inset space ~
+\end_inset
+
+incrementally: As we've done in the previous projects, we'll be starting
+ from a very simple base and expanding as we go.
+ This kind of 
+\begin_inset Quotes eld
+\end_inset
+
+bottom-up
+\begin_inset Quotes erd
+\end_inset
+
+ design can be very useful for prototyping games.
+\end_layout
+
+\begin_layout Standard
+Speaking of developing incrementally, let's reproduce the same first steps
+ that we've done in the previous chapters: Taking an image and displaying
+ it on the screen:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+def main
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine = Engine.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_width = 1024
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_height = 768
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	player = Component.new("1945.bmp")
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << player
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.run
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Ye Gods, What Have We Done!?
+\end_layout
+
+\begin_layout Standard
+If you run that, you'll quickly see that is not exactly an image of the
+ player.
+ It looks like it's an image of every sprite you'd see in the entire game.
+ And it looks like that because that's exactly what it is! In fact, if you
+ take a look at the sample code directory for chapter 4, you'll see that
+ 
+\begin_inset Quotes eld
+\end_inset
+
+1945.bmp
+\begin_inset Quotes erd
+\end_inset
+
+ is the only image in it.
+\end_layout
+
+\begin_layout Standard
+What gives?
+\end_layout
+
+\begin_layout Subsection
+Sprite Sheets
+\end_layout
+
+\begin_layout Standard
+\begin_inset Quotes eld
+\end_inset
+
+1945.bmp
+\begin_inset Quotes erd
+\end_inset
+
+ is an example of what's called a 
+\begin_inset Quotes eld
+\end_inset
+
+sprite sheet
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Instead of having a dozen or more separate images on disk, you can have
+ one image that has everything you need.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+Pro
+\end_layout
+
+\begin_layout Standard
+It may not be immediately obvious why this is any better, but it can have
+ a few advantages:
+\end_layout
+
+\begin_layout Description
+Speed: Loading an image from disk involves a certain amount of overhead
+ - the system needs to locate the file, verify it exists, ensure you have
+ permissions to read it, etc.
+ Doing this for one file is relatively quick, but if you're doing it hundreds
+ of times...
+ not as much.
+ This setup difference is even more pronounced if you're not getting your
+ images from disk but are instead getting them over a network connection.
+ If all your sprites are in one file, you only have to do this once.
+ 
+\end_layout
+
+\begin_layout Description
+Ease
+\begin_inset space ~
+\end_inset
+
+of
+\begin_inset space ~
+\end_inset
+
+Animation: If you look at the sheet you'll see there are a number of sprites
+ that are identical except for a few subtle differences (the ship and submarine,
+ for example).
+ These are intended to be animated, by swapping one image out and replacing
+ it with another one.
+ Rather than have to load in a number of separate files and then keep track
+ of which ones are which part of the animation, you can have one file and
+ have the parts which need to be animated right next to each other.
+\end_layout
+
+\begin_layout Description
+Texture
+\begin_inset space ~
+\end_inset
+
+Use: It's no accident that the 1945.bmp file is 1024 pixels wide.
+ You'd need to add on padding to make it that tall, but that's not terribly
+ difficult.
+ If you're creating a 3D game and looking for textures in the wild, you'll
+ likely find many that are 1024x1024 or 512x512 - that's because many 3D
+ libraries require textures with sizes that are a power of 2.
+ Additionally, 3D cards have a limit on how many textures they can load
+ at once.
+ Like the 'files' example above, it's easier on them to have one big texture
+ than a large amount of small ones.
+ We're not using 3D in this example, but it's still a reason to go with
+ spritesheets.
+\end_layout
+
+\begin_layout Subsubsection
+Con
+\end_layout
+
+\begin_layout Standard
+It's not all advantages, however.
+ There are downsides to spritesheets:
+\end_layout
+
+\begin_layout Description
+Complexity: Loading one image and displaying it is easy.
+ Loading a giant image and picking out only the part you need isn't as simple.
+ Furthermore, if each object has its own image, that object can be responsible
+ for loading it from disk.
+ If each object shares an image, the loading has to be handled somewhere
+ else.
+\end_layout
+
+\begin_layout Description
+Difficulty
+\begin_inset space ~
+\end_inset
+
+of
+\begin_inset space ~
+\end_inset
+
+Change: If you find that one of your sprites doesn't look the way you wanted
+ it to, you can open up its file and change it.
+ You can do the same thing in a spritesheet, but what if you wanted to change
+ the size of one of the sprites? You'd have to move everything else on the
+ spritesheet around.
+\end_layout
+
+\begin_layout Standard
+These can be mitigated to some extent by taking a hybrid approach: Create
+ the sprites in their own separate files and then use another program to
+ join them together in a spritesheet.
+ This way editing them is simple as long as you remember to run the joining
+ program.
+\end_layout
+
+\begin_layout Subsubsection
+Supporting Spritesheets
+\end_layout
+
+\begin_layout Standard
+Our existing components only know how to load and display ordinary images.
+ Let's add a class to our engine.rb that can handle sprite sheets:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class SpriteSheetComponent < Component
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(filename, srcrect)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@srcrect = srcrect
+\end_layout
+
+\begin_layout Plain Layout
+
+		super(filename)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect = Rect.new(0,0, srcrect.w, srcrect.h)
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def draw(screen)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image.blit(screen, @rect.topleft, @srcrect)
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The only difference here is that these components require a source rectangle
+ - that's the area of the spritesheet we'll be using as the image.
+ As you can see, Surface::blit takes an optional extra argument which is
+ exactly that.
+ This code will draw only the portion of the main image specified in @srcrect,
+ and it'll draw that portion at @rect.topleft.
+ Note that, even though the Component superclass sets @rect, we re-set it
+ here.
+ That's because the actual size of this component is what's in @srcrect.
+\end_layout
+
+\begin_layout Standard
+Now to use it - change our shoot-em.rb file to this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'engine'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+include Rubygame
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+def main
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine = Engine.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_width = 1024
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_height = 768
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	src = Rect.new(499,4,98,98)
+\end_layout
+
+\begin_layout Plain Layout
+
+	player = SpriteSheetComponent.new("1945.bmp",src)
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << player
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.run
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+if __FILE__ == $0
+\end_layout
+
+\begin_layout Plain Layout
+
+	main()
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Run this, and you'll see an airplane in the upper-left corner, which is
+ exactly what we want.
+ Well, we won't want it to start the upper-left corner, and we probably
+ want to do something about that blue background, but there's a more pressing
+ issue:
+\end_layout
+
+\begin_layout Subsubsection
+This is the least efficient thing you've ever done
+\end_layout
+
+\begin_layout Standard
+You might have noticed this back in the asteroids example.
+ The Component class takes in a filename and loads it from disk, then puts
+ it in memory.
+ It does this every time you create a new component.
+ So for every asteroid on the screen, each one has a separate copy of the
+ image in memory, even though these copies look exactly the same.
+\end_layout
+
+\begin_layout Standard
+That's only somewhat wasteful when you've got 5 asteroids and the asteroids
+ aren't that big.
+ When you're planning on dozens of sprites and the image you're loading
+ over and over again is nearly 800kb...
+ then you have a problem.
+\end_layout
+
+\begin_layout Standard
+A helpful feature in this instance would be to have a globally-accessable
+ image loader.
+ You could give it a filename and, if it hadn't already loaded that from
+ disk it'd do so.
+ If it already had the image, you'd get that.
+ That way we'd get the benefits of the spritesheet by only ever having the
+ one image in memory at any time.
+\end_layout
+
+\begin_layout Standard
+We could write that...
+ but we don't have to! Rubygame has already done this for us using a module
+ called NamedResource.
+ It does exactly what's specified above not only for images, but also for
+ sounds and music.
+\end_layout
+
+\begin_layout Standard
+Change our Component initializer to look like this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def initialize(filename)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@filename = filename
+\end_layout
+
+\begin_layout Plain Layout
+
+		Surface.autoload_dirs = ["."]
+\end_layout
+
+\begin_layout Plain Layout
+
+		initial = Surface[filename]
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(!initial.colorkey)
+\end_layout
+
+\begin_layout Plain Layout
+
+			initial.colorkey = [255,0,255]
+\end_layout
+
+\begin_layout Plain Layout
+
+			Surface[filename] = initial.convert
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image = Surface[filename]
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect = Rect.new(0,0,@image.w, @image.h)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@keys = {}
+\end_layout
+
+\begin_layout Plain Layout
+
+		super()
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Because this is the superclass of SpriteSheetComponent, it'll gain the benefits
+ of the resource re-use as well.
+\end_layout
+
+\begin_layout Subsubsection
+NamedResource
+\end_layout
+
+\begin_layout Standard
+You can load an instance of any class that mixes in NamedResource exactly
+ as we did above:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+ClassThatUsesNamedResource[filename]
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If it's already loaded that filename you'll get that instance, and if it
+ hasn't already loaded it, it'll do so then.
+ It looks for the filename in an array called 
+\begin_inset Quotes eld
+\end_inset
+
+autoload_dirs
+\begin_inset Quotes erd
+\end_inset
+
+, and this array isn't set up by default, so you'll need to put something
+ in it.
+ In our case, we set it to the current directory.
+ If you had an 'images' directory, you'd probably add it there.
+\end_layout
+
+\begin_layout Standard
+If it's so simple, you may be asking, why all the hubbub with checking the
+ color key and doing conversions? Recall that, if you want your image blitting
+ to be at all fast, you need to convert the image's format to the screen's
+ format.
+ NamedResource doesn't do that for us, so we need to do it ourselves.
+ But the 'convert' function 
+\emph on
+always
+\emph default
+ returns a new image, even if the original image didn't need converting,
+ so we can't do it every single time.
+ 
+\end_layout
+
+\begin_layout Standard
+We solve this problem by checking the colorkey of the image.
+ If the image was just loaded from disk, it won't have one, so we know the
+ conversion needs to happen.
+ We do the conversion, put the result back in the named resource so that
+ future reads from it will get our converted image, and set the color key
+ so next time we check the image we don't convert it.
+\end_layout
+
+\begin_layout Standard
+Somewhat complicated, yes, but more because of the complexity of Surfaces
+ rather than NamedResource itself.
+ The benefit is that you gain the ability to load a surface from anywhere
+ in your program, and you won't have multiple copies of that same surface
+ wasting memory.
+\end_layout
+
+\begin_layout Subsubsection
+That's not our color key
+\end_layout
+
+\begin_layout Standard
+The default colorkey of components is the lovely magenta color we used in
+ the previous chapters.
+ That doesn't help us one bit with Spritelib, which is using a shade of
+ blue for its color key on this image.
+ Let's add on to Component so we can make the color key whatever we want
+ it to be:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def colorkey=(key)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@image.colorkey = key
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now let's tell the engine to use it in shoot-em.rb:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	src = Rect.new(499,4,98,98)
+\end_layout
+
+\begin_layout Plain Layout
+
+	player = SpriteSheetComponent.new("1945.bmp",src)
+\end_layout
+
+\begin_layout Plain Layout
+
+	player.colorkey = [0, 67,171]
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << player
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If you run this you'll see it's not perfect - there are still blue dots
+ around the edges.
+ Because the game was designed to be played on a blue background (i.e.
+ flying over the sea), many of the sprites have blue outlines so they can
+ be seen apart from this background.
+ This isn't the modern way to blend such an outline in, but the art style
+ of Spritelib is purposefully retro.
+\end_layout
+
+\begin_layout Subsection
+The Player
+\end_layout
+
+\begin_layout Standard
+This section's going to be very similar to code you've already seen, because
+ there aren't that many ways to move something around the screen:
+\end_layout
+
+\begin_layout Standard
+plane.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'engine'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+class PlayerPlane < SpriteSheetComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(filename, srcrect)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super
+\end_layout
+
+\begin_layout Plain Layout
+
+		reset
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def reset
+\end_layout
+
+\begin_layout Plain Layout
+
+		@speed = 350
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		change = delay * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:left]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.x -= change
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:right]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.x += change
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:up]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.y -= change
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:down]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.y += change
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+That should look pretty familiar.
+ Running the game now gives you a controllable sprite.
+ We've once again repeated what we did back in Chapter 1! And like we did
+ for Pong in chapter 2, we have a 'reset' call.
+ This game will feature multiple lives, so the ability to re-set the player
+ back to the original settings will come in handy.
 \end_layout
 
 \begin_layout Section
@@ -9314,7 +10408,7 @@ This is the Rubygame logo, and it comes with the Rubygame distribution.
  are licensed under the Creative Commons Attribution-ShareAlike 2.5 License,
  viewable at 
 \begin_inset Flex URL
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
@@ -9323,7 +10417,19 @@ http://creativecommons.org/licenses/by-sa/2.5/
 
 \end_inset
 
+.
+\end_layout
 
+\begin_layout Subsubsection
+1945.bmp
+\end_layout
+
+\begin_layout Standard
+This is from Ari Feldman's Spritelib collection, which is licensed under
+ the Common Public License.
+ The entire text of the license (as well as Spritelib in its entirety) have
+ been included, so consult the license.txt file in the spritelib_gpl directory
+ for details.
 \end_layout
 
 \end_body
