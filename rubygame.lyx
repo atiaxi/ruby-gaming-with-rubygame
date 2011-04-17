@@ -9326,7 +9326,7 @@ def main
 
 \begin_layout Plain Layout
 
-	src = Rect.new(499,4,98,98)
+	src = Rect.new(4,4,32,32)
 \end_layout
 
 \begin_layout Plain Layout
@@ -9636,7 +9636,7 @@ status open
 
 \begin_layout Plain Layout
 
-	src = Rect.new(499,4,98,98)
+	src = Rect.new(4,4,32,32)
 \end_layout
 
 \begin_layout Plain Layout
@@ -9844,6 +9844,604 @@ That should look pretty familiar.
  for Pong in chapter 2, we have a 'reset' call.
  This game will feature multiple lives, so the ability to re-set the player
  back to the original settings will come in handy.
+\end_layout
+
+\begin_layout Subsubsection
+Putting the Player in Their Place
+\end_layout
+
+\begin_layout Standard
+Like in Asteroids, it'd be incredibly annoying to have the player start
+ in the upper left corner because enemies are going to be coming from (among
+ other places) right there.
+ So let's modify our reset code to move the player toward the bottom-center:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def reset
+\end_layout
+
+\begin_layout Plain Layout
+
+		@speed = 350
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		screen = Screen.get_surface()
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.center = [screen.w / 2, screen.h - @rect.height]
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+The Enemies
+\end_layout
+
+\begin_layout Standard
+At first, this is going to seem very similar to the Asteroids example, because
+ our enemies and the Asteroids have a lot in common.
+\end_layout
+
+\begin_layout Standard
+plane.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class EnemyPlane < SpriteSheetComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(filename,srcrect)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super
+\end_layout
+
+\begin_layout Plain Layout
+
+		@speed = 350
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Thrilling! Let's put it on the screen:
+\end_layout
+
+\begin_layout Standard
+shoot-em.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+def main
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine = Engine.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_width = 1024
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_height = 768
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	src = Rect.new(4,4,32,32)	
+\end_layout
+
+\begin_layout Plain Layout
+
+	player = PlayerPlane.new("1945.bmp",src)
+\end_layout
+
+\begin_layout Plain Layout
+
+	player.colorkey = [0, 67,171]
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << player
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	src = Rect.new(499,4,98,98)
+\end_layout
+
+\begin_layout Plain Layout
+
+	baddie = EnemyPlane.new("1945.bmp",src)
+\end_layout
+
+\begin_layout Plain Layout
+
+	baddie.colorkey = [0, 67, 171]
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << baddie
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.run
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Even more thrilling! Running this shows us two sprites; one under your control
+ and one that's your sworn enemy.
+\end_layout
+
+\begin_layout Subsubsection
+Pick a spot and move to it
+\end_layout
+
+\begin_layout Standard
+The enemy's pretty darn boring at the moment.
+ We need a way to move it around on the screen, but here's a spot where
+ we want to differ from Asteroids.
+ Rather than picking a direction and moving in it (and never deviating)
+ we'd like to have the enemies zip around the screen and turn on a dime.
+ The usual InertialComponent isn't going to work for those purposes.
+\end_layout
+
+\begin_layout Standard
+Instead, we'll take a page from Pong - we'll have a target spot and move
+ to meet it.
+ Add this function to the EnemyPlane:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @waypoint == nil || close_to_waypoint?
+\end_layout
+
+\begin_layout Plain Layout
+
+			pick_waypoint
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		dx = @waypoint[0] - @rect.x
+\end_layout
+
+\begin_layout Plain Layout
+
+		dy = @waypoint[1] - @rect.y
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.x += dx * delay * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.y += dy * delay * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This is pretty simple.
+ First we see if the waypoint hasn't been set
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+In the full code listing for plane.rb, we explicitly set @waypoint to nil.
+ You don't need to make that change here unless you especially want to;
+ it'll be nil by default.
+\end_layout
+
+\end_inset
+
+ or check to see if the ship's close to its waypoint.
+ If so, we pick a new one.
+ After that, we move the plane closer to its chosen waypoint.
+\end_layout
+
+\begin_layout Standard
+If I hadn't moved a ton of functionality into other functions, we could
+ run it right now! Since I'm impatient, let's implement some of that functionali
+ty.
+ Add this to EnemyPlane:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def close_to_waypoint?
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @waypoint
+\end_layout
+
+\begin_layout Plain Layout
+
+			dx = (@waypoint[0] - @rect.x).sign
+\end_layout
+
+\begin_layout Plain Layout
+
+			dy = (@waypoint[1] - @rect.y).sign
+\end_layout
+
+\begin_layout Plain Layout
+
+			
+\end_layout
+
+\begin_layout Plain Layout
+
+			if (dx+dy) < @rect.w / 2
+\end_layout
+
+\begin_layout Plain Layout
+
+				return true
+\end_layout
+
+\begin_layout Plain Layout
+
+			end
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		return false
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def pick_waypoint
+\end_layout
+
+\begin_layout Plain Layout
+
+		@waypoint = [ 500,500]
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+pick_waypoint is purposely simple right now.
+ Obviously we don't want every enemy to do nothing but move to 500,500,
+ but it'll make demonstrations easy.
+\end_layout
+
+\begin_layout Standard
+close_to_waypoint? does exactly what it says; it checks to see the plane's
+ close to the waypoint we've picked.
+ If you've done much game programming before or have a math background,
+ you've likely noticed that we don't actually do a distance check here.
+ Instead, we just add the distances on the x and y axis up and see if that's
+ less than half our sprite's size.
+ This is both easier to understand and faster than doing it the right way.
+\end_layout
+
+\begin_layout Standard
+The method we're using here is computing the 
+\begin_inset Quotes eld
+\end_inset
+
+Manhattan Distance
+\begin_inset Quotes erd
+\end_inset
+
+.
+ If you wanted to use the correct distance formula, the code would look
+ like this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout LyX-Code
+
+if Math.sqrt(dx*dx + dy*dy) < (@rect.w / 2)
+\end_layout
+
+\begin_layout LyX-Code
+
+  return true
+\end_layout
+
+\begin_layout LyX-Code
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Monkeypatching
+\end_layout
+
+\begin_layout Standard
+You'll get an error if you try to run this; it'll tell you that there's
+ no such thing as a 'sign' function for numbers.
+ This is annoying; we want to move one way if we're to the left of the spot
+ we're going to, and another if we're to the right.
+ Similarly, we change the way we move if we're higher or lower.
+ A function that would return -1, 0, or 1 depending on the sign of the number
+ would be very handy in this case, but there isn't one
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Well, actually...
+ there is.
+ You can compare two numbers using the <=> operator (also known as the 'spaceshi
+p' operator) and it will return -1, 0, or 1.
+ However, this isn't a function you can call on any number, you always have
+ to have two numbers with <=>, so our new addition to the Numeric class
+ isn't entirely useless.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Yet!
+\end_layout
+
+\begin_layout Standard
+engine.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class Numeric
+\end_layout
+
+\begin_layout Plain Layout
+
+	def sign
+\end_layout
+
+\begin_layout Plain Layout
+
+		return -1 if self < 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		return 1 if self > 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		return 0
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If you're a ruby expert, you already know what I'm doing here and can safely
+ skip the following explanation: When you try to define a class that already
+ exists (the 'Numeric' class is the superclass of all numbers), rather than
+ replacing the previous definition, whatever functions you add are added
+ to the original.
+ So once you put this in, every number in your program has access to the
+ 'sign' function you just made.
+\end_layout
+
+\begin_layout Standard
+This technique is called 
+\begin_inset Quotes eld
+\end_inset
+
+Monkey Patching
+\begin_inset Quotes erd
+\end_inset
+
+ and like the earlier technique of Duck typing, it's very powerful and thus
+ easily abused.
+ Adding on functionality is usually okay, but be very, very careful if you
+ re-write a function that already exists in the class.
+ Changing how the '+' operator works for every number in Ruby could get
+ very confusing, very quickly!
+\end_layout
+
+\begin_layout Standard
+Now you can run this and watch as the enemy plane flies from the top left
+ of the screen to a spot near the lower right...
+ and then bounces around there.
+ It's doing that because we never actually tell it to stop moving.
+ Later on we'll have it pick a new waypoint and start moving to that - this
+ will prevent the bouncing behavior you're seeing now.
 \end_layout
 
 \begin_layout Section

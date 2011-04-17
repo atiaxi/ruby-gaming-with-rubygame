@@ -10,10 +10,15 @@ def main
 	
 	engine.screen
 	
-	src = Rect.new(499,4,98,98)
+	src = Rect.new(4,4,32,32)	
 	player = PlayerPlane.new("1945.bmp",src)
 	player.colorkey = [0, 67,171]
 	engine.components << player
+
+	src = Rect.new(499,4,98,98)
+	baddie = EnemyPlane.new("1945.bmp",src)
+	baddie.colorkey = [0, 67, 171]
+	engine.components << baddie
 
 	engine.run
 end

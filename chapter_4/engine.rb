@@ -2,6 +2,14 @@ require 'rubygame'
 
 include Rubygame
 
+class Numeric
+	def sign
+		return -1 if self < 0
+		return 1 if self > 0
+		return 0
+	end
+end
+
 class BareComponent
 	include Sprites::Sprite
 	
