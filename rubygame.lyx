@@ -10444,6 +10444,335 @@ Now you can run this and watch as the enemy plane flies from the top left
  will prevent the bouncing behavior you're seeing now.
 \end_layout
 
+\begin_layout Subsubsection
+Again, that was 'Enemies', plural
+\end_layout
+
+\begin_layout Standard
+Much like we did with Asteroids, we're going to create an overall enemy
+ creation object to handle all of our enemies.
+ Add this to plane.rb:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class AirTrafficControl < BareComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	TIME_BETWEEN_SHIPS = 0.5
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super()
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine = engine
+\end_layout
+
+\begin_layout Plain Layout
+
+		@wave = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		@active_ships = []
+\end_layout
+
+\begin_layout Plain Layout
+
+		@time_to_next_ship = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		begin_wave
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def begin_wave
+\end_layout
+
+\begin_layout Plain Layout
+
+		@ships_to_spawn = @wave + 5
+\end_layout
+
+\begin_layout Plain Layout
+
+		@wave += 1
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def check_spawn_ship
+\end_layout
+
+\begin_layout Plain Layout
+
+		@time_to_next_ship = TIME_BETWEEN_SHIPS
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @ships_to_spawn > 0
+\end_layout
+
+\begin_layout Plain Layout
+
+			@ships_to_spawn -= 1
+\end_layout
+
+\begin_layout Plain Layout
+
+			spawn_ship
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def spawn_ship
+\end_layout
+
+\begin_layout Plain Layout
+
+		src = Rect.new(499,4,98,98)
+\end_layout
+
+\begin_layout Plain Layout
+
+		baddie = EnemyPlane.new("1945.bmp",src)
+\end_layout
+
+\begin_layout Plain Layout
+
+		baddie.colorkey = [0, 67, 171]
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine.components << baddie
+\end_layout
+
+\begin_layout Plain Layout
+
+		@active_ships << baddie
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@time_to_next_ship -= delay
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @time_to_next_ship <= 0
+\end_layout
+
+\begin_layout Plain Layout
+
+			check_spawn_ship
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This isn't really anything we haven't seen before.
+ We set up a counter for waves of incoming enemies, and we set up a timer
+ to keep track of when we should spawn another plane out of that wave.
+ You can run this by changing shoot-em.rb:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+def main
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine = Engine.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_width = 1024
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_height = 768
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	src = Rect.new(4,4,32,32)	
+\end_layout
+
+\begin_layout Plain Layout
+
+	player = PlayerPlane.new("1945.bmp",src)
+\end_layout
+
+\begin_layout Plain Layout
+
+	player.colorkey = [0, 67,171]
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << player
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	atc = AirTrafficControl.new(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << atc
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.run
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Running this is only slightly more impressive than the first time around.
+ Rather than just having one plane come out and bounce around, now there
+ are five - each coming a half-second after the other.
+\end_layout
+
 \begin_layout Section
 \start_of_appendix
 Key Symbol Cheatsheet

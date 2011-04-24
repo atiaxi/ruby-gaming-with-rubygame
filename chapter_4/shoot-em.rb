@@ -15,10 +15,8 @@ def main
 	player.colorkey = [0, 67,171]
 	engine.components << player
 
-	src = Rect.new(499,4,98,98)
-	baddie = EnemyPlane.new("1945.bmp",src)
-	baddie.colorkey = [0, 67, 171]
-	engine.components << baddie
+	atc = AirTrafficControl.new(engine)
+	engine.components << atc
 
 	engine.run
 end

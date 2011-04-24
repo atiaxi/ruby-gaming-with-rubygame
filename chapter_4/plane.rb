@@ -65,10 +65,51 @@ class EnemyPlane < SpriteSheetComponent
 		dy = (@waypoint[1] - @rect.y).sign
 		
 		x_impulse = dx * delay * @speed
-		puts "dx: #{dx}, delay: #{delay}, speed: #{@speed} -> #{x_impulse}"
 		
 		@rect.x += dx * delay * @speed
 		@rect.y += dy * delay * @speed
 		
+	end
+end
+
+class AirTrafficControl < BareComponent
+
+	TIME_BETWEEN_SHIPS = 0.5
+
+	def initialize(engine)
+		super()
+		@engine = engine
+		@wave = 0
+		@active_ships = []
+		@time_to_next_ship = 0
+		begin_wave
+	end
+	
+	def begin_wave
+		@ships_to_spawn = @wave + 5
+		@wave += 1
+	end
+	
+	def check_spawn_ship
+		@time_to_next_ship = TIME_BETWEEN_SHIPS
+		if @ships_to_spawn > 0
+			@ships_to_spawn -= 1
+			spawn_ship
+		end
+	end
+	
+	def spawn_ship
+		src = Rect.new(499,4,98,98)
+		baddie = EnemyPlane.new("1945.bmp",src)
+		baddie.colorkey = [0, 67, 171]
+		@engine.components << baddie
+		@active_ships << baddie
+	end
+	
+	def update(delay)
+		@time_to_next_ship -= delay
+		if @time_to_next_ship <= 0
+			check_spawn_ship
+		end
 	end
 end
