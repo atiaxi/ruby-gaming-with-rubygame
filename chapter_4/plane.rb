@@ -34,18 +34,23 @@ end
 
 class EnemyPlane < SpriteSheetComponent
 
+	attr_accessor :waypoint
+
 	def initialize(filename,srcrect)
 		super
 		@speed = 350
 		@waypoint = nil
+		@screen = Screen.get_surface
 	end
 	
 	def close_to_waypoint?
 		if @waypoint
-			dx = @waypoint[0] - @rect.x
-			dy = @waypoint[1] - @rect.y
+			dx = (@waypoint[0] - @rect.x).abs
+			dy = (@waypoint[1] - @rect.y).abs
 			
-			if (dx+dy) < @rect.w / 2
+			dist = (dx+dy)
+			
+			if dist < @rect.w / 2
 				return true
 			end
 		end
@@ -53,7 +58,20 @@ class EnemyPlane < SpriteSheetComponent
 	end
 	
 	def pick_waypoint
-		@waypoint = [ 500,500]
+		if @rect.bottom < 0
+			@rect.top = @screen.height
+		end
+		if @waypoint
+			new_x = (@rect.x < @screen.width / 2) ?
+				@screen.width - @rect.width : 0
+			new_y = @rect.y - @rect.height
+			@waypoint = [ new_x, new_y ]
+		else
+			@waypoint = [
+				rand(@screen.width),
+				rand(@screen.height)
+			]
+		end
 	end
 	
 	def update(delay)
@@ -62,14 +80,19 @@ class EnemyPlane < SpriteSheetComponent
 		end
 		
 		dx = (@waypoint[0] - @rect.x).sign
-		dy = (@waypoint[1] - @rect.y).sign
+		
+		# Get rid of bouncing
+		dy = (@waypoint[1] - @rect.y)
+		if dy.abs < @rect.height / 4
+			dy = 0
+		end
+		dy = dy.sign
 		
 		x_impulse = dx * delay * @speed
-		
 		@rect.x += dx * delay * @speed
 		@rect.y += dy * delay * @speed
-		
 	end
+	
 end
 
 class AirTrafficControl < BareComponent
@@ -82,6 +105,7 @@ class AirTrafficControl < BareComponent
 		@wave = 0
 		@active_ships = []
 		@time_to_next_ship = 0
+		@screen = Screen.get_surface
 		begin_wave
 	end
 	
@@ -101,6 +125,9 @@ class AirTrafficControl < BareComponent
 	def spawn_ship
 		src = Rect.new(499,4,98,98)
 		baddie = EnemyPlane.new("1945.bmp",src)
+		baddie.rect.top = @screen.height
+		baddie.waypoint = [ @screen.width - baddie.rect.width,
+			@screen.height - baddie.rect.height * 1.5 ]
 		baddie.colorkey = [0, 67, 171]
 		@engine.components << baddie
 		@active_ships << baddie

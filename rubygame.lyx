@@ -9926,6 +9926,15 @@ class EnemyPlane < SpriteSheetComponent
 
 \begin_layout Plain Layout
 
+	attr_accessor :waypoint
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
 	def initialize(filename,srcrect)
 \end_layout
 
@@ -9937,6 +9946,11 @@ class EnemyPlane < SpriteSheetComponent
 \begin_layout Plain Layout
 
 		@speed = 350
+\end_layout
+
+\begin_layout Plain Layout
+
+		@screen = Screen.get_surface
 \end_layout
 
 \begin_layout Plain Layout
@@ -10202,12 +10216,12 @@ status open
 
 \begin_layout Plain Layout
 
-			dx = (@waypoint[0] - @rect.x).sign
+			dx = (@waypoint[0] - @rect.x).abs
 \end_layout
 
 \begin_layout Plain Layout
 
-			dy = (@waypoint[1] - @rect.y).sign
+			dy = (@waypoint[1] - @rect.y).abs
 \end_layout
 
 \begin_layout Plain Layout
@@ -10441,7 +10455,7 @@ Now you can run this and watch as the enemy plane flies from the top left
  and then bounces around there.
  It's doing that because we never actually tell it to stop moving.
  Later on we'll have it pick a new waypoint and start moving to that - this
- will prevent the bouncing behavior you're seeing now.
+ will prevent most of the bouncing behavior you're seeing now.
 \end_layout
 
 \begin_layout Subsubsection
@@ -10771,6 +10785,379 @@ end
 Running this is only slightly more impressive than the first time around.
  Rather than just having one plane come out and bounce around, now there
  are five - each coming a half-second after the other.
+\end_layout
+
+\begin_layout Subsubsection
+Get to the waypoint
+\end_layout
+
+\begin_layout Standard
+This also shares another problem that the Asteroids program had - the enemies
+ always start at the upper-left side of the screen.
+ We moved the player away so they wouldn't start there, but if they ever
+ moved to that spot they'd be destroyed almost immediately.
+ Plus I'm not planning to let the player shoot in any direction other than
+ directly down, so having the enemies start in the upper-left doesn't really
+ work.
+\end_layout
+
+\begin_layout Standard
+While we're at it, let's give the planes a saner waypoint.
+ Change spawn_ship in plane.rb to look like this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def spawn_ship
+\end_layout
+
+\begin_layout Plain Layout
+
+		src = Rect.new(499,4,98,98)
+\end_layout
+
+\begin_layout Plain Layout
+
+		baddie = EnemyPlane.new("1945.bmp",src)
+\end_layout
+
+\begin_layout Plain Layout
+
+		baddie.rect.top = @screen.height
+\end_layout
+
+\begin_layout Plain Layout
+
+		baddie.waypoint = [ @screen.width - baddie.rect.width,
+\end_layout
+
+\begin_layout Plain Layout
+
+			@screen.height - baddie.rect.height * 1.5 ]
+\end_layout
+
+\begin_layout Plain Layout
+
+		baddie.colorkey = [0, 67, 171]
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine.components << baddie
+\end_layout
+
+\begin_layout Plain Layout
+
+		@active_ships << baddie
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now the plane comes out of the bottom of the screen and moves over to its
+ waypoint on the right.
+ If you run this, you may be surprised by what happens when it gets there
+ - it starts moving somewhere else! Recall way back when we wrote the EnemyPlane
+, we hard-coded its pick_waypoint function to set the waypoint to [500,500].
+ So when the plane reaches its first waypoint, it chooses another one (our
+ built-in one).
+\end_layout
+
+\begin_layout Standard
+We'll come up with a better way of picking waypoints shortly, but there's
+ another annoying issue to fix - the planes are still bouncy!
+\end_layout
+
+\begin_layout Standard
+The reason for this is because we choose whether to move the planes up or
+ down depending on if the plane is above or below its waypoint.
+ Given that it's unlikely that the plane is going to be exactly in line
+ with its waypoint as it moves, this means it's going to constantly be moving
+ up to meet it, and then moving back down to correct the problem.
+\end_layout
+
+\begin_layout Standard
+The easy fix for this is to build in a tolerance, which is what we'll do
+ now.
+ Change EnemyPlane's update to look like this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @waypoint == nil || close_to_waypoint?
+\end_layout
+
+\begin_layout Plain Layout
+
+			pick_waypoint
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		dx = (@waypoint[0] - @rect.x).sign
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		# Get rid of bouncing
+\end_layout
+
+\begin_layout Plain Layout
+
+		dy = (@waypoint[1] - @rect.y)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if dy.abs < @rect.height / 4
+\end_layout
+
+\begin_layout Plain Layout
+
+			dy = 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		dy = dy.sign
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		x_impulse = dx * delay * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.x += dx * delay * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		@rect.y += dy * delay * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now enemy planes will only move up or down if the waypoint is at least a
+ quarter their height away.
+ 
+\end_layout
+
+\begin_layout Standard
+We could do the same thing for the 'x' side of the equation as well, but
+ I'll leave it out in the interests of brevity.
+ For our specific application we don't need it - any time the x location
+ would get close enough to cause the kind of bouncing we've seen in the
+ past, it'll be close enough to the waypoint to go pick another.
+\end_layout
+
+\begin_layout Subsubsection
+It's waypoints all the way down
+\end_layout
+
+\begin_layout Standard
+Okay, let's take care of that 
+\begin_inset Quotes eld
+\end_inset
+
+hard-coded waypoint choice
+\begin_inset Quotes erd
+\end_inset
+
+ thing.
+ Change EnemyPlane's pick_waypoint to:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def pick_waypoint
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @rect.bottom < 0
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.top = @screen.height
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @waypoint
+\end_layout
+
+\begin_layout Plain Layout
+
+			new_x = (@rect.x < @screen.width / 2) ?
+\end_layout
+
+\begin_layout Plain Layout
+
+				@screen.width - @rect.width : 0
+\end_layout
+
+\begin_layout Plain Layout
+
+			new_y = @rect.y - @rect.height
+\end_layout
+
+\begin_layout Plain Layout
+
+			@waypoint = [ new_x, new_y ]
+\end_layout
+
+\begin_layout Plain Layout
+
+		else
+\end_layout
+
+\begin_layout Plain Layout
+
+			@waypoint = [
+\end_layout
+
+\begin_layout Plain Layout
+
+				rand(@screen.width),
+\end_layout
+
+\begin_layout Plain Layout
+
+				rand(@screen.height)
+\end_layout
+
+\begin_layout Plain Layout
+
+			]
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+There are two important things here - the first thing we do is see if the
+ plane's off the top of the screen.
+ If it is, we move it back to the bottom to try another attack at the player.
+\end_layout
+
+\begin_layout Standard
+The second thing we do here is actually pick the next waypoint.
+ The 'y' location is one ship length up from the previous location, and
+ the 'x' location is on the other side of the screen from where it is now.
+ This leads to the planes moving back and forth across the screen and slowly
+ moving upward.
+\end_layout
+
+\begin_layout Standard
+Because the EnemyPlane doesn't set its own waypoint, we can't be sure that
+ it has one, so I put in some extra code to create one if it doesn't exist.
+\end_layout
+
+\begin_layout Standard
+With all this in place, we now have a never-ending supply of enemies.
+ Next up, we'll let the player end them!
+\end_layout
+
+\begin_layout Subsection
+Putting the 
+\begin_inset Quotes eld
+\end_inset
+
+Shoot
+\begin_inset Quotes erd
+\end_inset
+
+ in 
+\begin_inset Quotes eld
+\end_inset
+
+Shoot-em-up
+\begin_inset Quotes erd
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
