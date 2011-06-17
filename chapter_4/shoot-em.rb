@@ -10,13 +10,13 @@ def main
 	
 	engine.screen
 	
-	src = Rect.new(4,4,32,32)	
-	player = PlayerPlane.new("1945.bmp",src)
-	player.colorkey = [0, 67,171]
-	engine.components << player
-
 	atc = AirTrafficControl.new(engine)
 	engine.components << atc
+	
+	src = Rect.new(4,4,32,32)	
+	player = PlayerPlane.new("1945.bmp",src,atc)
+	player.colorkey = [0, 67,171]
+	engine.components << player
 
 	engine.run
 end

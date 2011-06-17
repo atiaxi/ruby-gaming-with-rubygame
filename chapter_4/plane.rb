@@ -1,10 +1,17 @@
 require 'engine'
+require 'projectile'
 
 class PlayerPlane < SpriteSheetComponent
+	attr_accessor :faction
 
-	def initialize(filename, srcrect)
-		super
+	include Shooter
+
+	def initialize(filename, srcrect,atc)
+		super(filename,srcrect)
 		reset
+		@faction = :player
+		@atc = atc
+		@atc.player = self
 	end
 	
 	def reset
@@ -15,6 +22,8 @@ class PlayerPlane < SpriteSheetComponent
 	end
 
 	def update(delay)
+		super
+		
 		change = delay * @speed
 		
 		if @keys[:left]
@@ -28,6 +37,10 @@ class PlayerPlane < SpriteSheetComponent
 		elsif @keys[:down]
 			@rect.y += change
 		end
+		
+		if @keys[:space]
+			shoot(@atc)
+		end
 	end
 
 end
@@ -35,12 +48,16 @@ end
 class EnemyPlane < SpriteSheetComponent
 
 	attr_accessor :waypoint
+	attr_accessor :faction
+	
+	include Shooter
 
 	def initialize(filename,srcrect)
 		super
 		@speed = 350
 		@waypoint = nil
 		@screen = Screen.get_surface
+		@faction = :enemy
 	end
 	
 	def close_to_waypoint?
@@ -75,6 +92,7 @@ class EnemyPlane < SpriteSheetComponent
 	end
 	
 	def update(delay)
+		super
 		if @waypoint == nil || close_to_waypoint?
 			pick_waypoint
 		end
@@ -96,6 +114,7 @@ class EnemyPlane < SpriteSheetComponent
 end
 
 class AirTrafficControl < BareComponent
+	attr_accessor :player
 
 	TIME_BETWEEN_SHIPS = 0.5
 
@@ -107,6 +126,12 @@ class AirTrafficControl < BareComponent
 		@time_to_next_ship = 0
 		@screen = Screen.get_surface
 		begin_wave
+	end
+	
+	def add_shot(projectile)
+		@shots ||= []
+		@shots << projectile
+		@engine.components << projectile
 	end
 	
 	def begin_wave

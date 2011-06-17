@@ -11160,6 +11160,1103 @@ Shoot-em-up
 
 \end_layout
 
+\begin_layout Standard
+Before we go re-implementing projectiles like we did in Asteroids, there's
+ something to consider: This time around, the player's not going to be the
+ only one shooting.
+ We'd like to allow the enemy planes to shoot back! However, if we re-used
+ the asteroids style projectiles, enemy ships would end up blowing themselves
+ up with their own bullets.
+ The solution is to implement a 'faction' system:
+\end_layout
+
+\begin_layout Subsubsection
+The Enemy of your Enemy
+\end_layout
+
+\begin_layout Standard
+First, we'll give the player the ability to have a faction:
+\end_layout
+
+\begin_layout Standard
+plane.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class PlayerPlane < SpriteSheetComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :faction
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(filename, srcrect)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super
+\end_layout
+
+\begin_layout Plain Layout
+
+		reset
+\end_layout
+
+\begin_layout Plain Layout
+
+		@faction = :player
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Then we'll do the same thing for our enemies:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class EnemyPlane < SpriteSheetComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :waypoint
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :faction
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(filename,srcrect)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super
+\end_layout
+
+\begin_layout Plain Layout
+
+		@speed = 350
+\end_layout
+
+\begin_layout Plain Layout
+
+		@waypoint = nil
+\end_layout
+
+\begin_layout Plain Layout
+
+		@screen = Screen.get_surface
+\end_layout
+
+\begin_layout Plain Layout
+
+		@faction = :enemy
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now we have a much more explicit way to tell friend from foe (other than
+ 
+\begin_inset Quotes eld
+\end_inset
+
+Whatever planes aren't the player
+\begin_inset Quotes erd
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Subsubsection
+Magic Bullet
+\end_layout
+
+\begin_layout Standard
+This time around, let's put the projectile logic in its own file.
+ Here's our first draft of what the bullets look like:
+\end_layout
+
+\begin_layout Standard
+projectile.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'engine'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+class Projectile < SpriteSheetComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :faction
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def initialize(faction)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@faction = faction
+\end_layout
+
+\begin_layout Plain Layout
+
+		@speed = 700
+\end_layout
+
+\begin_layout Plain Layout
+
+		super("1945.bmp",srcrect_for_faction)
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def srcrect_for_faction()
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(@faction == :player)
+\end_layout
+
+\begin_layout Plain Layout
+
+			return Rect.new(4,202,32,32)
+\end_layout
+
+\begin_layout Plain Layout
+
+		else
+\end_layout
+
+\begin_layout Plain Layout
+
+			return Rect.new(4, 169,32,32)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if(@faction == :player)
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.y += @speed * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+		else
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.y -= @speed * delay
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We haven't even put any collision logic in here, and already we're using
+ the faction we're given for two different things:
+\end_layout
+
+\begin_layout Enumerate
+If you look on the spritesheet where I've defined those source rectangles,
+ you'll see that one is a set of bullets going up, and the other is a set
+ of bullets going down.
+ Since the player is always at the top shooting downward and the enemies
+ are always shooting upward, we pick which image we're using depending on
+ who we belong to.
+\end_layout
+
+\begin_layout Enumerate
+Similarly, in update(), the projectile chooses wihch direction to actually
+ go based on its faction.
+\end_layout
+
+\begin_layout Subsubsection
+Take the Shot
+\end_layout
+
+\begin_layout Standard
+Enough with the preparations! Let's shoot things! Here's the code in projectile.r
+b which handles actually firing a shot:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+module Shooter
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	def can_shoot?
+\end_layout
+
+\begin_layout Plain Layout
+
+		@cooldown ||= 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		return @cooldown <= 0
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def shoot(atc)
+\end_layout
+
+\begin_layout Plain Layout
+
+		if can_shoot?
+\end_layout
+
+\begin_layout Plain Layout
+
+			projectile = Projectile.new(@faction)
+\end_layout
+
+\begin_layout Plain Layout
+
+			projectile.rect.centerx = @rect.centerx
+\end_layout
+
+\begin_layout Plain Layout
+
+			projectile.rect.centery = @rect.centery
+\end_layout
+
+\begin_layout Plain Layout
+
+			atc.add_shot(projectile)
+\end_layout
+
+\begin_layout Plain Layout
+
+			@cooldown = 0.5
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super
+\end_layout
+
+\begin_layout Plain Layout
+
+		@cooldown ||= 0
+\end_layout
+
+\begin_layout Plain Layout
+
+		@cooldown -= delay
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If you're a ruby expert, you probably know what I'm doing here.
+ If not, this is what's going on: We want to create functionality that both
+ the PlayerPlane and EnemyPlane can use.
+ Normally we'd put that in a superclass, but SpriteSheetComponent is pretty
+ generic and not something you'd expect to always be able to shoot.
+ We could create a new class and have PlayerPlane and EnemyPlane derive
+ from that, but what if we later wanted something that inherited from (for
+ example) InertialComponent to be able to shoot bullets?
+\end_layout
+
+\begin_layout Standard
+The solution is to create a Mixin.
+ The idea here is that any class which includes the Shooter module will
+ get these three functions.
+ The only thing this depends on is that the class this is getting mixed
+ into has both a @faction and a @rect.
+\end_layout
+
+\begin_layout Standard
+Let's have both PlayerPlane and EnemyPlane use this module:
+\end_layout
+
+\begin_layout Standard
+plane.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+require 'engine'
+\end_layout
+
+\begin_layout Plain Layout
+
+require 'projectile'
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+class PlayerPlane < SpriteSheetComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :faction
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	include Shooter
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And further down....
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class EnemyPlane < SpriteSheetComponent
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :waypoint
+\end_layout
+
+\begin_layout Plain Layout
+
+	attr_accessor :faction
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	include Shooter
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+You may wonder what happens if a module defines a function that the importing
+ classes already have.
+ In our case, the Shooter module defines 'update' but both of the plane
+ classes already have one.
+ It's not a problem, as it turns out: Ruby does some magic behind the scenes
+ to make it seem as though Shooter is the plane's superclass, so you can
+ ensure that Shooter's update gets called.
+ All you need to do is edit PlayerPlane's update like this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super
+\end_layout
+
+\begin_layout Plain Layout
+
+		change = delay * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:left]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.x -= change
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:right]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.x += change
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:up]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.y -= change
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:down]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.y += change
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And the EnemyPlane like this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As before, the only actual change that's needed is the call to 'super' at
+ the very beginning, don't change the rest of the update function.
+\end_layout
+
+\begin_layout Subsubsection
+Air Traffic Control Revisited
+\end_layout
+
+\begin_layout Standard
+If you run it at this point, everything will work fine, but if you were
+ looking over the Shooter module, you probably noticed that the shoot()
+ function has two problems:
+\end_layout
+
+\begin_layout Enumerate
+It's taking this mysterious 
+\begin_inset Quotes eld
+\end_inset
+
+atc
+\begin_inset Quotes erd
+\end_inset
+
+ parameter, and
+\end_layout
+
+\begin_layout Enumerate
+It's calling add_shot() on that atc object.
+\end_layout
+
+\begin_layout Standard
+This doesn't crash the game because we're not calling shoot() from anywhere,
+ but obviously we're going to want to actually be able to use our method.
+\end_layout
+
+\begin_layout Standard
+The 'atc' stands for 
+\begin_inset Quotes eld
+\end_inset
+
+Air Traffic Control
+\begin_inset Quotes erd
+\end_inset
+
+, and it's the class we defined in the previous section to control when
+ and how new planes appear.
+ Since it's already doing coordination and its name implies it's responsible
+ for everything in the air, it makes sense to put this add_shot() function
+ in it:
+\end_layout
+
+\begin_layout Standard
+plane.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def add_shot(projectile)
+\end_layout
+
+\begin_layout Plain Layout
+
+		@shots ||= []
+\end_layout
+
+\begin_layout Plain Layout
+
+		@shots << projectile
+\end_layout
+
+\begin_layout Plain Layout
+
+		@engine.components << projectile
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+We create an internal list for shots if one doesn't already exist, and we
+ add the new projectile to it.
+ Then we add it to the engine so it'll appear.
+\end_layout
+
+\begin_layout Subsubsection
+
+Seriously, Take the Shot Already!
+\end_layout
+
+\begin_layout Standard
+
+In order for the player to be able to shoot, it's going to have to have
+ access to the AirTrafficController.
+ Let's make it a parameter that needs to be passed in to PlayerPlane:
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def initialize(filename, srcrect,atc)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super(filename,srcrect)
+\end_layout
+
+\begin_layout Plain Layout
+
+		reset
+\end_layout
+
+\begin_layout Plain Layout
+
+		@faction = :player
+\end_layout
+
+\begin_layout Plain Layout
+
+		@atc = atc
+\end_layout
+
+\begin_layout Plain Layout
+
+		@atc.player = self
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now, finally, we call shoot()!
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+	def update(delay)
+\end_layout
+
+\begin_layout Plain Layout
+
+		super
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		change = delay * @speed
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:left]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.x -= change
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:right]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.x += change
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:up]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.y -= change
+\end_layout
+
+\begin_layout Plain Layout
+
+		elsif @keys[:down]
+\end_layout
+
+\begin_layout Plain Layout
+
+			@rect.y += change
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\end_layout
+
+\begin_layout Plain Layout
+
+		if @keys[:space]
+\end_layout
+
+\begin_layout Plain Layout
+
+			shoot(@atc)
+\end_layout
+
+\begin_layout Plain Layout
+
+		end
+\end_layout
+
+\begin_layout Plain Layout
+
+	end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Finally, we can fire this up to rain firey death upon our enemies.
+\end_layout
+
+\begin_layout Standard
+But instead, it crashes! We required that the air traffic controller be
+ passed in, but we didn't actually do that.
+ Fixes!
+\end_layout
+
+\begin_layout Standard
+shoot-em.rb
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+def main
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine = Engine.new
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_width = 1024
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen_height = 768
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.screen
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	atc = AirTrafficControl.new(engine)
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << atc
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	src = Rect.new(4,4,32,32)	
+\end_layout
+
+\begin_layout Plain Layout
+
+	player = PlayerPlane.new("1945.bmp",src,atc)
+\end_layout
+
+\begin_layout Plain Layout
+
+	player.colorkey = [0, 67,171]
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.components << player
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	engine.run
+\end_layout
+
+\begin_layout Plain Layout
+
+end
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 \start_of_appendix
 Key Symbol Cheatsheet
